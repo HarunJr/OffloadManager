@@ -1,15 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">OffloadManager</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="vehicles_title_label">Vehicles</string>
     <string name="add_vehicle_title">Add Vehicle</string>
-    <string name="refresh">Refresh</string>
     <string name="create_vehicle_label">Add Vehicle</string>
     <string name="vehicle_reg_hint">KBG 007E</string>
-    <string name="vehicle_reg"> Registration:</string>
-    <string name="vehicle_make"> Make:</string>
+    <string name="vehicle_reg">Registration:</string>
+    <string name="vehicle_make">Make:</string>
     <string name="vehicle_make_hint">ISUZU</string>
     <string name="vehicle_model">Model:</string>
     <string name="vehicle_model_hint">FRR33L</string>
