@@ -18,4 +18,9 @@
     <string name="label_pass_cap">Passengers:</string>
     <string name="passengers_hint">41</string>
     <string name="create_vehicle_button_label">Add Vehicle</string>
+    <string name="title_activity_add_vehicle">Add Vehicle</string>
+
+    <string name="sync_account_type">offloadmanager.harun.com</string>
+    <string name="content_authority">com.harun.offloadmanager</string>
+
 </resources>

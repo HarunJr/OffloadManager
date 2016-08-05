@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,7 +12,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.harun.offloadmanager.activities.AddVehicleActivity;
+import com.harun.offloadmanager.sync.OffloadSyncAdapter;
+
 public class VehiclesFragment extends Fragment {
+    public static final String LOG_TAG = VehiclesFragment.class.getSimpleName();
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -73,6 +78,7 @@ public class VehiclesFragment extends Fragment {
 
         switch (item.getItemId()){
             case R.id.action_add_vehicle:
+                Log.w(LOG_TAG, "action_add_vehicle");
                 addVehicle();
                 return true;
             case R.id.action_refresh:
@@ -82,8 +88,20 @@ public class VehiclesFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateView();
+    }
+
     private void addVehicle(){
-        startActivity(new Intent(getContext(), AddVehicle.class));
+        startActivity(new Intent(getActivity(), AddVehicleActivity.class));
+    }
+
+    private void updateView(){
+//        FetchVehicleTask vehicleTask = new FetchVehicleTask(getContext());
+//        vehicleTask.execute();
+        OffloadSyncAdapter.syncImmediately(getContext());
     }
 
     //    // TODO: Rename method, update argument and hook method into UI event
