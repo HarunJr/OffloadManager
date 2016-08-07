@@ -11,10 +11,10 @@
         layout="@layout/tool_bar" />
 
     <fragment
-        android:id="@+id/main_container"
+        android:id="@+id/fragment_vehicles"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:name="com.harun.offloadmanager.fragments.VehiclesFragment"
-        tools:context=".fragments.MainFragment">
+        tools:context=".fragments.VehiclesFragment">
     </fragment>
 </LinearLayout>
