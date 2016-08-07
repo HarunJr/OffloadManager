@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="http://schemas.android.com/tools">
     <string name="app_name">OffloadManager</string>
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -22,5 +22,13 @@
 
     <string name="sync_account_type">offloadmanager.harun.com</string>
     <string name="content_authority">com.harun.offloadmanager</string>
+    <string name="empty_vehicle_list">No Vehicles Entered</string>
+    <string name="vehicle_hint_label">KAZ 170G</string>
+
+    <!--Format amount-->
+    <string name="format_amount"><xliff:g id="amount">%1$.2f</xliff:g></string>
+    <string name="format_expense">-<xliff:g id="amount"> %1$.2f</xliff:g></string>
+    <string name="no_internet_message">Internet Not Connected</string>
+    <string name="title_activity_detail">Details</string>
 
 </resources>

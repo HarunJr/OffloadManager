@@ -77,7 +77,7 @@ public class AddVehicleActivity extends AppCompatActivity {
                             passengerCapacity,
                             dateTime);
                 }else {
-                    Toast.makeText(getBaseContext(), "Network not available", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(), R.string.no_internet_message, Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -86,7 +86,7 @@ public class AddVehicleActivity extends AppCompatActivity {
 
     }
 
-    private boolean isNetworkAvailable(){
+    public boolean isNetworkAvailable(){
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnectedOrConnecting();

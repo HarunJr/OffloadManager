@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Vector;
 
 import static com.harun.offloadmanager.data.OffloadContract.VehicleEntry;
 
@@ -107,8 +106,6 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
             JSONObject vehicleJson = new JSONObject(vehicleJsonString);
             JSONArray vehicleArray = vehicleJson.getJSONArray(VEHICLE_LIST);
 
-            Vector<ContentValues> cVVector = new Vector<ContentValues>(vehicleArray.length());
-
             for (int i = 0; i < vehicleArray.length(); i++) {
                 String vehicleId, vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction;
 
@@ -122,7 +119,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 Log.w(LOG_TAG, "From db: " + vehicleReg + ", " + regDate);
 
-                addToVehiclesSQLitedb( vehicleReg, regDate, "20000", "-2400", "date");
+                addToVehiclesSQLitedb( vehicleReg, regDate, "20000", "2400", "date");
 
             }
 

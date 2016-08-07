@@ -89,9 +89,12 @@ public class OffloadContract {
         {
             return CONTENT_URI.buildUpon().appendPath(vehicleRegistration).build();
         }
-        public static Uri buildVehicleRegistrationWithDate(String vehicleRegistration, long date)
+        public static Uri buildVehicleRegistrationWithTransactions(String vehicleRegistration, int dailyTotalCollection, int dailyTotlaExpense)
         {
-            return CONTENT_URI.buildUpon().appendPath(vehicleRegistration).appendPath(Long.toString(normalizeDate(date))).build();
+            return CONTENT_URI.buildUpon()
+                    .appendPath(vehicleRegistration)
+                    .appendPath(Long.toString(dailyTotalCollection))
+                    .appendPath(Long.toString(dailyTotlaExpense )).build();
         }
 
         public static String getIdFromUri(Uri uri)
