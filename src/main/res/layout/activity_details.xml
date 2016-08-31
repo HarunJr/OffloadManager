@@ -3,32 +3,63 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".fragments.DetailsFragment">
+    android:layout_height="match_parent">
 
-
-    <LinearLayout
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/details_appBarLayout"
+        app:elevation="0dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="360dp">
 
-        <android.support.design.widget.AppBarLayout
-            android:id="@+id/details_appBarLayout"
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
+            app:toolbarId="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true"
+            app:expandedTitleMarginEnd="64dp"
+            app:expandedTitleMarginStart="48dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:collapsedTitleTextAppearance="@style/TextAppearance.AppCompat.Title.Inverse"
+            app:expandedTitleTextAppearance="@style/TextAppearance.AppCompat.Title.Inverse">
 
             <include
                 android:id="@+id/detail_activity_toolbar"
-                layout="@layout/tool_bar" />
-        </android.support.design.widget.AppBarLayout>
+                layout="@layout/tool_bar"
+                app:layout_collapseMode="pin"
+                app:elevation="0dp"/>
 
-        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/vehicle_detail_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context=".activities.DetailsActivity"
-            tools:ignore="MergeRootFrame"/>
-    </LinearLayout>
+            <com.harun.offloadmanager.helper.CalendarView
+                xmlns:calendarNS="http://schemas.android.com/apk/res/com.harun.offloadmanager"
+                android:id="@+id/calendar_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                calendarNS:dateFormat="MMMM yyyy"/>
+
+
+        </android.support.design.widget.CollapsingToolbarLayout>
+    </android.support.design.widget.AppBarLayout>
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/vehicle_detail_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:context=".activities.DetailsActivity"
+        tools:ignore="MergeRootFrame"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@drawable/ic_action_add"
+        app:borderWidth="0dp"
+        app:layout_behavior="com.harun.offloadmanager.ScrollingFABBehavior" />
 
 </android.support.design.widget.CoordinatorLayout>

@@ -55,6 +55,15 @@
                 android:value=".activities.MainActivity" />
         </activity>
 
+        <activity
+            android:name=".activities.TransactionsActivity"
+            android:label="@string/title_activity_transactions"
+            android:parentActivityName=".activities.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.MainActivity" />
+        </activity>
+
 
         <!-- SyncAdapter's dummy authentication service -->
         <service android:name=".sync.OffloadAuthenticatorService" >

@@ -31,5 +31,12 @@
     <string name="no_internet_message">Internet Not Connected</string>
     <string name="title_activity_detail">Details</string>
     <string name="empty_transactions_list">No Transactions Entred</string>
+    <string name="whole_number_hint">0</string>
+    <string name="description_label">description</string>
+    <string name="label_yes">Yes</string>
+    <string name="title_activity_transactions">Transactions</string>
+    <string name="header_label">Header</string>
+    <string name="amount_label">amount</string>
+    <string name="date_label">date</string>
 
 </resources>

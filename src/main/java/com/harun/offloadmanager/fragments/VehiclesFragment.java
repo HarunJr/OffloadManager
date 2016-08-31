@@ -24,7 +24,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.VehiclesAdapter;
+import com.harun.offloadmanager.adapters.VehiclesAdapter;
 import com.harun.offloadmanager.activities.AddVehicleActivity;
 import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.sync.OffloadSyncAdapter;
@@ -139,6 +139,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
                 addVehicle();
                 return true;
             case R.id.action_refresh:
+                updateView();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -173,7 +174,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.w(LOG_TAG, "onCreateLoader: ");
+        Log.w(LOG_TAG, "onCreateLoader: " + args);
         String sortOrder = OffloadContract.VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME + " DESC";
 
         return new CursorLoader(

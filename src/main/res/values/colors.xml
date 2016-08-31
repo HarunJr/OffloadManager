@@ -9,4 +9,8 @@
     <!--300 of primary-->
     <color name="colorPrimaryText">#6968AB</color>
 
+    <!--calendar colors-->
+    <color name="today">#4b82ff</color>
+    <color name="greyed_out">#c7c7c7</color>
+
 </resources>

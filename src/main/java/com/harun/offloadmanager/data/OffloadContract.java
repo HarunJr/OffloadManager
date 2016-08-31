@@ -97,14 +97,17 @@ public class OffloadContract {
                     .appendPath(Long.toString(dailyTotlaExpense )).build();
         }
 
-        public static String getIdFromUri(Uri uri)
-        {
-            return uri.getPathSegments().get(1);
-        }
-
         public static String getVehicleRegistrationFromUri(Uri uri)
         {
             return uri.getPathSegments().get(1);
+        }
+        public static String getDailyTotalCollectionFromUri(Uri uri)
+        {
+            return uri.getPathSegments().get(2);
+        }
+        public static String getDailyTotlaExpenseFromUri(Uri uri)
+        {
+            return uri.getPathSegments().get(3);
         }
 
 
@@ -136,17 +139,17 @@ public class OffloadContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildTransactionsWithVehicleIdUri(long vehicleId)
+        public static Uri buildTransactionsWithVehicleIdUri(String vehicleReg)
         {
-            return CONTENT_URI.buildUpon().appendPath(String.valueOf((vehicleId))).build();
+            return CONTENT_URI.buildUpon().appendPath(String.valueOf((vehicleReg))).build();
         }
 
         /*
             Create URI with vehicle Reg appeded at end of URi
          */
-        public static Uri buildVehicleTransactionUri(int vehicleId)
+        public static Uri buildVehicleTransactionUri(String vehicleReg)
         {
-            return CONTENT_URI.buildUpon().appendPath(Integer.toString(vehicleId)).build();
+            return CONTENT_URI.buildUpon().appendPath(vehicleReg).build();
         }
 
         public static Uri buildVehicleTransactionWithStartDate(String vehicleRegistration, long startDate)
@@ -167,7 +170,7 @@ public class OffloadContract {
             return uri.getPathSegments().get(1);
         }
 
-        public static String getVehicleIdFromUri(Uri uri)
+        public static String getVehicleRegFromUri(Uri uri)
         {
             return uri.getPathSegments().get(1);
         }
@@ -181,9 +184,5 @@ public class OffloadContract {
         {
             return uri.getQueryParameter(COLUMN_DATE_TIME);
         }
-
-
     }
-
-
 }

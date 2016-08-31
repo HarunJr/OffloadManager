@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.harun.offloadmanager.Constants;
-import com.harun.offloadmanager.PostToServerTask;
+import com.harun.offloadmanager.tasks.PostToServerTask;
 import com.harun.offloadmanager.R;
 
 public class AddVehicleActivity extends AppCompatActivity {

@@ -1,4 +1,4 @@
-package com.harun.offloadmanager;
+package com.harun.offloadmanager.tasks;
 
 import android.app.ProgressDialog;
 import android.content.ContentUris;
@@ -109,23 +109,29 @@ public class FetchVehicleTask extends AsyncTask<Void, Void, String> {
         //Vehicle details referenced from JSON
         final String VEHICLE_REG = "vehicle_reg";
         final String VEHICLE_REG_DATE = "sign_up_date";
+        final String VEHICLE_TOTAL_DAY_COLLECTION = "vehicle_total_day_collection";
+        final String VEHICLE_TOTAL_DAY_EXPENSE = "vehicle_total_day_expense";
+        final String VEHICLE_LAST_TRANSACTION_DATE = "last_transaction_date";
+
 
         try {
             JSONObject vehicleJson = new JSONObject(vehicleJsonString);
             JSONArray vehicleArray = vehicleJson.getJSONArray(VEHICLE_LIST);
 
             for (int i = 0; i < vehicleArray.length(); i++) {
-                String vehicleReg, regDate;
+                String vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction;
 
                 JSONObject vehicleObject = vehicleArray.getJSONObject(i);
 
                 vehicleReg = vehicleObject.getString(VEHICLE_REG);
                 regDate = vehicleObject.getString(VEHICLE_REG_DATE);
+                vehicleCollection = vehicleObject.getString(VEHICLE_TOTAL_DAY_COLLECTION);
+                vehicleExpense = vehicleObject.getString(VEHICLE_TOTAL_DAY_EXPENSE);
+                vehicleLastTransaction = vehicleObject.getString(VEHICLE_LAST_TRANSACTION_DATE);
 
                 Log.w(LOG_TAG, "From db: " + vehicleReg + ", " + regDate);
 
-                addToVehiclesSQLitedb( vehicleReg, regDate, "20000", "-2400", "date");
-
+                addToVehiclesSQLitedb( vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction);
             }
 
         } catch (JSONException e) {

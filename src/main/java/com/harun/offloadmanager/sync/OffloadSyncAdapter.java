@@ -53,11 +53,12 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
 
         try {
             //TODO: setup condition for switching between genymotion and device
-//            final String json_url = "http://192.168.245.1/Offloader002/getData.php";
-            final String json_url = "http://192.168.245.1/offloadmanager/get_vehicles.php";
+//            final String json_url = "http://192.168.56.1/offloadmanager/get_vehicles.php";
+            final String json_url = "http://192.168.56.1/offloadmanager/get_data.php";
             URL url = new URL(json_url);
             httpURLConnection = (HttpURLConnection) url.openConnection();
             InputStream inputStream = httpURLConnection.getInputStream();
+            Log.d(LOG_TAG, "json_url Called."+ inputStream);
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
             StringBuilder stringBuilder = new StringBuilder();
@@ -98,28 +99,29 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
         //Vehicle details referenced from JSON
         final String VEHICLE_REG = "vehicle_reg";
         final String VEHICLE_REG_DATE = "sign_up_date";
-//        final String V_DAY_TOTAL_COLLECTION = "v_day_total_collection";
-//        final String V_DAY_TOTAL_EXPENSE = "v_day_total_expense";
-//        final String VEHICLE_LAST_TRANSACTION = "last_transaction";
+        final String VEHICLE_TOTAL_DAY_COLLECTION = "v_day_total_collection";
+        final String VEHICLE_TOTAL_DAY_EXPENSE = "v_day_total_expense";
+        final String VEHICLE_LAST_TRANSACTION_DATE = "last_transaction_date";
+
 
         try {
             JSONObject vehicleJson = new JSONObject(vehicleJsonString);
             JSONArray vehicleArray = vehicleJson.getJSONArray(VEHICLE_LIST);
 
             for (int i = 0; i < vehicleArray.length(); i++) {
-                String vehicleId, vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction;
+                String vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction;
 
                 JSONObject vehicleObject = vehicleArray.getJSONObject(i);
 
                 vehicleReg = vehicleObject.getString(VEHICLE_REG);
                 regDate = vehicleObject.getString(VEHICLE_REG_DATE);
-//                vehicleCollection = vehicleObject.getString(V_DAY_TOTAL_COLLECTION);
-//                vehicleExpense = vehicleObject.getString(V_DAY_TOTAL_EXPENSE);
-//                vehicleLastTransaction = vehicleObject.getString(VEHICLE_LAST_TRANSACTION);
+                vehicleCollection = vehicleObject.getString(VEHICLE_TOTAL_DAY_COLLECTION);
+                vehicleExpense = vehicleObject.getString(VEHICLE_TOTAL_DAY_EXPENSE);
+                vehicleLastTransaction = vehicleObject.getString(VEHICLE_LAST_TRANSACTION_DATE);
 
-                Log.w(LOG_TAG, "From db: " + vehicleReg + ", " + regDate);
+                Log.w(LOG_TAG, "From db: " + vehicleReg + ", " + vehicleCollection+ ", " + vehicleExpense+ ", " + vehicleLastTransaction+ ", " + regDate);
 
-                addToVehiclesSQLitedb( vehicleReg, regDate, "20000", "2400", "date");
+                addToVehiclesSQLitedb( vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction);
 
             }
 

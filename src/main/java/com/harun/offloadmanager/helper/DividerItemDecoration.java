@@ -1,4 +1,4 @@
-package com.harun.offloadmanager;
+package com.harun.offloadmanager.helper;
 
 
 import android.content.Context;

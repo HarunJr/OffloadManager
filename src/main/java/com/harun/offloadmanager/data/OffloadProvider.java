@@ -43,8 +43,8 @@ public class OffloadProvider extends ContentProvider {
 
     static final int TRANSACTIONS = 200;
     static final int TRANSACTION_WITH_ID = 201;
-    static final int TRANSACTION_WITH_START_DATE = 202;
-    static final int TRANSACTION_WITH_VEHICLE_ID = 203;
+    static final int TRANSACTIONS_WITH_VEHICLE_REGISTRATION = 202;
+    static final int TRANSACTION_WITH_START_DATE = 203;
     static final int TRANSACTION_WITH_VEHICLE_ID_AND_TRANSACTION_ID = 204;
     static final int TRANSACTION_WITH_VEHICLE_AND_START_DATE = 205;
 
@@ -147,8 +147,8 @@ public class OffloadProvider extends ContentProvider {
 
         matcher.addURI(authority, PATH_TRANSACTIONS, TRANSACTIONS);
         matcher.addURI(authority, PATH_TRANSACTIONS + "/#", TRANSACTION_WITH_ID);
-        matcher.addURI(authority, PATH_TRANSACTIONS + "/#", TRANSACTION_WITH_VEHICLE_ID);
-        matcher.addURI(authority, PATH_TRANSACTIONS + "/*", TRANSACTION_WITH_START_DATE);
+        matcher.addURI(authority, PATH_TRANSACTIONS + "/*", TRANSACTIONS_WITH_VEHICLE_REGISTRATION);
+        matcher.addURI(authority, PATH_TRANSACTIONS + "date/*", TRANSACTION_WITH_START_DATE);
         matcher.addURI(authority, PATH_TRANSACTIONS + "/#/#", TRANSACTION_WITH_VEHICLE_ID_AND_TRANSACTION_ID);
         matcher.addURI(authority, PATH_TRANSACTIONS + "/*/#", TRANSACTION_WITH_VEHICLE_AND_START_DATE);
 
@@ -156,21 +156,14 @@ public class OffloadProvider extends ContentProvider {
 
     }
 
-    private Cursor getVehicleByIdOrRegistration(Uri uri, String[] projection, String sortOrder) {
-        String vehicleId = VehicleEntry.getIdFromUri(uri);
+    private Cursor getVehicleByRegistration(Uri uri, String[] projection, String sortOrder) {
         String vehicleRegistration = VehicleEntry.getVehicleRegistrationFromUri(uri);
 
         String[] selectionArgs;
         String selection;
-        //If vehicleId is null, then we are using the vehicleRegistration
-        if (vehicleId == null) {
-            selectionArgs = new String[]{vehicleRegistration};
-            selection = sVehicleRegistrationSelection;
-        } else {
-            selectionArgs = new String[]{vehicleId};
-            selection = sVehicleWithIdSelection;
-        }
 
+        selectionArgs = new String[]{vehicleRegistration};
+        selection = sVehicleRegistrationSelection;
 
         return sTransactionByVehicleQueryBuilder.query(
                 mOpenHelper.getReadableDatabase(),
@@ -184,7 +177,7 @@ public class OffloadProvider extends ContentProvider {
     }
 
     private Cursor getVehicleByDate(Uri uri, String[] projection, String sortOrder) {
-        String id = VehicleEntry.getIdFromUri(uri);
+        String id = VehicleEntry.getVehicleRegistrationFromUri(uri);
         String date = VehicleEntry.getDateFromUri(uri);
 
         String[] selectionArgs = new String[]{id, date};
@@ -199,10 +192,10 @@ public class OffloadProvider extends ContentProvider {
                 null,
                 sortOrder
         );
-
     }
 
     private Cursor getVehicles(String[] projection, String sortOrder) {
+
         Log.d(LOG_TAG, "ALL_VEHICLES_CODE");
         return mOpenHelper.getReadableDatabase().query(
                 VehicleEntry.TABLE_NAME,
@@ -214,7 +207,6 @@ public class OffloadProvider extends ContentProvider {
                 sortOrder
 
         );
-
     }
 
     //Retrieve all Vehicle items created beyond the start date given
@@ -265,10 +257,9 @@ public class OffloadProvider extends ContentProvider {
         );
     }
 
-
-    private Cursor getTransactionByVehicleId(Uri uri, String[] projection, String sortOrder) {
+    private Cursor getTransactionByVehicleReg(Uri uri, String[] projection, String sortOrder) {
         // ToDo : retrieve vehicleId
-        String vehicleId = TransactionEntry.getVehicleIdFromUri(uri);
+        String vehicleId = TransactionEntry.getVehicleRegFromUri(uri);
         String startDate = TransactionEntry.getStartDateFromUri(uri);
 
         String[] selectionArgs;
@@ -298,7 +289,7 @@ public class OffloadProvider extends ContentProvider {
 
     //Retrieve all transactions done beyond the start date given
     private Cursor getTransactionsByVehicleIdAndTransactionId(Uri uri, String[] projection, String sortOrder) {
-        String vehicleId = TransactionEntry.getVehicleIdFromUri(uri);
+        String vehicleId = TransactionEntry.getVehicleRegFromUri(uri);
         String transactionId = TransactionEntry.getTransactionIdFromUri(uri);
 
         String[] selectionArgs = new String[]{vehicleId, transactionId};
@@ -316,15 +307,16 @@ public class OffloadProvider extends ContentProvider {
 
     //Retrieve all transactions done beyond the start date given
     private Cursor getTransactionsByStartDate(Uri uri, String[] projection, String sortOrder) {
-        String startDate = TransactionEntry.getStartDateFromUri(uri);
+//        String startDate = TransactionEntry.getStartDateFromUri(uri);
 
-        String[] selectionArgs = new String[]{startDate};
+//        String[] selectionArgs = new String[]{startDate};
         String selection = sTransactionWithStartDateSelection;
 
+        Log.w(LOG_TAG, "called; getTransactionsByStartDate:" +", "+selection);
         return sTransactionByVehicleQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
                 selection,
-                selectionArgs,
+                null,
                 null,
                 null,
                 sortOrder
@@ -333,7 +325,7 @@ public class OffloadProvider extends ContentProvider {
 
     private Cursor getTransactionsByVehicleIdAndStartDate(Uri uri, String[] projection, String sortOrder) {
         String startDate = TransactionEntry.getStartDateFromUri(uri);
-        String vehicleId = TransactionEntry.getVehicleIdFromUri(uri);
+        String vehicleId = TransactionEntry.getVehicleRegFromUri(uri);
 
         String[] selectionArgs = new String[]{vehicleId, startDate};
         String selection = sTransactionsWithVehicleIdAndStartDateSelection;
@@ -358,15 +350,18 @@ public class OffloadProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         // Here's the switch statement that, given a URI, will determine what kind of request it is,
         // and query the database accordingly.
+        Log.w(LOG_TAG, "called; query");
         Cursor retCursor;
         switch (sUriMatcher.match(uri)) {
             // "weather/*/*"
             case TRANSACTION_WITH_ID: {
                 retCursor = getTransactionsByTransactionId(uri, projection, sortOrder);
+                Log.w(LOG_TAG, "called; TRANSACTION_WITH_ID");
                 break;
             }
             case TRANSACTION_WITH_VEHICLE_AND_START_DATE: {
                 retCursor = getTransactionsByVehicleIdAndStartDate(uri, projection, sortOrder);
+                Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_AND_START_DATE");
                 break;
             }
             // "weather/*"
@@ -379,32 +374,36 @@ public class OffloadProvider extends ContentProvider {
             case TRANSACTIONS: {
 
                 retCursor = getTransactions(projection);
+                Log.w(LOG_TAG, "called; TRANSACTIONS");
+                break;
+            }
+            case TRANSACTIONS_WITH_VEHICLE_REGISTRATION: {
+                retCursor = getTransactionByVehicleReg(uri, projection, sortOrder);
+                Log.w(LOG_TAG, "called; TRANSACTIONS_WITH_VEHICLE_REGISTRATION");
                 break;
             }
             case TRANSACTION_WITH_START_DATE: {
 
                 retCursor = getTransactionsByStartDate(uri, projection, sortOrder);
+                Log.w(LOG_TAG, "called; TRANSACTION_WITH_START_DATE");
                 break;
             }
-            case TRANSACTION_WITH_VEHICLE_ID: {
-                retCursor = getTransactionByVehicleId(uri, projection, sortOrder);
-                Log.w(LOG_TAG, "called; ALL_TRANSACTIONS_WITH_VEHICLE_ID_CODE");
-                break;
-            }
-
             // "location"
             case VEHICLE_WITH_ID_OR_REGISTRATION: {
-                retCursor = getVehicleByIdOrRegistration(uri, projection, sortOrder);
+                retCursor = getVehicleByRegistration(uri, projection, sortOrder);
+                Log.w(LOG_TAG, "called; VEHICLE_WITH_ID_OR_REGISTRATION");
                 break;
             }
             // "location"
             case VEHICLE_WITH_START_DATE: {
                 retCursor = getVehiclesByStartDate(uri, projection, sortOrder);
+                Log.w(LOG_TAG, "called; VEHICLE_WITH_START_DATE");
                 break;
             }
 
             case VEHICLES: {
                 retCursor = getVehicles(projection, sortOrder);
+                Log.w(LOG_TAG, "called; VEHICLES");
                 break;
             }
 
@@ -419,6 +418,7 @@ public class OffloadProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
+        Log.w(LOG_TAG, "called; getType");
 
         // Use the Uri Matcher to determine what kind of URI this is.
         final int match = sUriMatcher.match(uri);

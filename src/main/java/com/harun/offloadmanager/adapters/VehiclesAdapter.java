@@ -1,4 +1,4 @@
-package com.harun.offloadmanager;
+package com.harun.offloadmanager.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -10,6 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.harun.offloadmanager.DateHelper;
+import com.harun.offloadmanager.R;
+import com.harun.offloadmanager.Utilities;
 import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.fragments.VehiclesFragment;
 
@@ -27,6 +30,7 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
     private static final int VIEW_TYPE_VEHICLES = 1;
 
     final private Context mContext;
+
     public VehiclesAdapter(Context context, VehiclesAdapterOnClickHandler mClickHandler, View emptyView) {
         this.mClickHandler = mClickHandler;
         mEmptyView = emptyView;
@@ -91,14 +95,14 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
         Log.w(LOG_TAG, "onBindViewHolder: "+mCursor.getCount()+", "+position+ " vehicle:"+ VehiclesFragment.COL_VEHICLE_REGISTRATION);
 
         // Read values amount from cursor
-        String dateTimeString = mCursor.getString(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
-//        long dateTimeMillis = mCursor.getLong(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
+//        String dateTimeString = mCursor.getString(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
+        long dateTimeMillis = mCursor.getLong(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
         double amount = mCursor.getDouble(VehiclesFragment.COL_VEHICLE_AMOUNT);
         double expense = mCursor.getDouble(VehiclesFragment.COL_VEHICLE_EXPENSE);
         String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
 
-//        String dayTime = DateHelper.getFormattedTimeString(dateTimeMillis);
-//        String day = DateHelper.getFormattedDayString(dateTimeMillis);
+        String dayTime = DateHelper.getFormattedTimeString(dateTimeMillis);
+        String day = DateHelper.getFormattedDayString(dateTimeMillis);
         String formattedAmount = Utilities.getFormattedCurrency(mContext, amount);
         String formattedExpense = Utilities.getFormattedCurrencyExpense(mContext, expense);
 
@@ -106,7 +110,7 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
         holder.vehicleView.setText(vehicleReg);
         holder.amountView.setText(formattedAmount);
         holder.expenseView.setText(formattedExpense);
-        holder.dateView.setText(dateTimeString);
+        holder.dateView.setText(dayTime);
 
     }
 

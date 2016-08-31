@@ -1,19 +1,36 @@
 package com.harun.offloadmanager.activities;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
+import com.harun.offloadmanager.helper.CalendarView;
+import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.R;
+import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.fragments.DetailsFragment;
+import com.harun.offloadmanager.fragments.TransactionsFragment;
 
-public class DetailsActivity extends AppCompatActivity {
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashSet;
+
+public class DetailsActivity extends AppCompatActivity{
     public static final String LOG_TAG = DetailsActivity.class.getSimpleName();
-    public static final String VEHICLE_REG = "vehicle_reg";
     //From mainActivity
+    Uri mUri;
     String vehicleReg;
     Bundle args = new Bundle();
+
+    FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,20 +42,57 @@ public class DetailsActivity extends AppCompatActivity {
 
         setToolBar();
 
-        addDetailsFragment(vehicleReg);
+        addDetailsFragment(mUri);
+
+        HashSet<Date> events = new HashSet<>();
+        events.add(new Date());
+
+        CalendarView cv = ((CalendarView)findViewById(R.id.calendar_view));
+        cv.updateCalendar(events);
+
+        // assign event handler
+        cv.setEventHandler(new CalendarView.EventHandler()
+        {
+            @Override
+            public void onDayLongPress(Date date)
+            {
+                // show returned day
+                DateFormat df = SimpleDateFormat.getDateInstance();
+                Toast.makeText(getApplicationContext(), df.format(date), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        fab = (FloatingActionButton) findViewById(R.id.fabButton);
+
+        fab.setOnClickListener(new View.OnClickListener() {
+                                   @Override
+                                   public void onClick(View v) {
+
+                                       Log.w(LOG_TAG, " OnFabPressed " + vehicleReg);
+                                       startTransactionsActivity(vehicleReg);
+                                   }
+                               }
+
+        );
     }
 
     private void getDataFromMainActivity() {
         //get vehicle value from uri path
-        String[] path = getIntent().getData().getPath().split("/");
-        vehicleReg = path[path.length -3];
+//        String[] path = getIntent().getData().getPath().split("/");
+//        vehicleReg = path[path.length - 3];
 
         args.putParcelable(DetailsFragment.DETAIL_URI, getIntent().getData());
 
-        Log.w(LOG_TAG, "getDataFromMainActivity " + vehicleReg);
+        Log.w(LOG_TAG, "getDataFromMainActivity "+ args);
     }
 
     private void setToolBar() {
+        if (args != null) {
+            mUri = args.getParcelable(DetailsFragment.DETAIL_URI);
+            vehicleReg = OffloadContract.VehicleEntry.getVehicleRegistrationFromUri(mUri);
+        }
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_activity_toolbar);
         setSupportActionBar(toolbar);
 
@@ -46,34 +100,43 @@ public class DetailsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(vehicleReg);
 
+        //TODO: work on UP button next to title
+        CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        collapsingToolbarLayout.setTitle(vehicleReg);
     }
 
-    private void addDetailsFragment(String vehicleReg) {
+    private void addDetailsFragment(Uri uri) {
         //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
-        Log.w(LOG_TAG, "addDetailsFragment " + vehicleReg);
+        Log.w(LOG_TAG, "addDetailsFragment " + uri);
 
         DetailsFragment detailFragment = new DetailsFragment();
         detailFragment.setArguments(args);
 
         getSupportFragmentManager().beginTransaction()
-        .add(R.id.vehicle_detail_container, detailFragment)
-        .commit();
+                .add(R.id.vehicle_detail_container, detailFragment)
+                .commit();
     }
 
-//    private void replaceWithTransactionFragment(int vehicleId, String vehicleReg) {
-//        args.putInt(Constants.VEHICLE_ID, vehicleId);
-//        args.putString(Constants.VEHICLE_REG, vehicleReg);
-//        Log.w(LOG_TAG, "replaceWithTransactionFragment " + vehicleId + ", " + vehicleReg);
-//
-//        TransactionFragment transactionFragment = new TransactionFragment();
-//        transactionFragment.setArguments(args);
-//        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-//        fragmentTransaction.addToBackStack(null);
-//        fragmentTransaction.replace(R.id.vehicle_detail_container, transactionFragment);
-//        fragmentTransaction.commit();
-//    }
-//
-//    private void replaceWithDetailFragment(int vehicleId, String vehicleReg) {
+
+    private void startTransactionsActivity(String vehicleReg) {
+        startActivity(new Intent(getApplicationContext(), TransactionsActivity.class)
+                .putExtra(TransactionsActivity.VEHICLE_REG, vehicleReg));
+    }
+
+    private void replaceWithTransactionFragment(String vehicleReg) {
+        args.putString(Constants.VEHICLE_REG, vehicleReg);
+        Log.w(LOG_TAG, "replaceWithTransactionFragment " + vehicleReg);
+
+        TransactionsFragment transactionFragment = new TransactionsFragment();
+        transactionFragment.setArguments(args);
+
+        getSupportFragmentManager().beginTransaction()
+                .addToBackStack(null)
+                .replace(R.id.vehicle_detail_container, transactionFragment)
+                .commit();
+    }
+
+    //    private void replaceWithDetailFragment(int vehicleId, String vehicleReg) {
 //        args.putInt(Constants.VEHICLE_ID, vehicleId);
 //        args.putString(Constants.VEHICLE_REG, vehicleReg);
 //
@@ -96,55 +159,8 @@ public class DetailsActivity extends AppCompatActivity {
 //        fragmentTransaction.replace(R.id.vehicle_detail_container, editVehicle);
 //        fragmentTransaction.commit();
 //    }
-//
-//    private void startDetailActivity(int vehicleId, String vehicleReg) {
-//
-//        Log.w(LOG_TAG, "startDetailActivity " + vehicleId + ", " + vehicleReg);
-//        startActivity(new Intent(getApplicationContext(), DetailsActivity.class)
-//                .putExtra(Constants.VEHICLE_ID, vehicleId)
-//                .putExtra(Constants.VEHICLE_REG, vehicleReg));
-//    }
-//
-//    @Override
-//    public void onFabPressed(int vehicleId, String vehicleReg) {
-//        replaceWithTransactionFragment(vehicleId, vehicleReg);
-//    }
-//
-//    @Override
-//    public void onCollectionButtonClicked(int vehicleId, String vehicleReg, String method, String collection, String stringType, String description, String dateTime) {
-//        String stringVehicleId = String.valueOf(vehicleId);
-//
-//        PostToServerTask postToServerTask = new PostToServerTask(getApplicationContext());
-//        postToServerTask.execute(method, stringVehicleId, collection, stringType, description, dateTime);
-//
-//        startDetailActivity(vehicleId, vehicleReg);
-//        Log.w(LOG_TAG, "startDetailActivity " + vehicleId + ", " + vehicleReg);
-//    }
-//
-//    @Override
-//    public void onExpenseButtonClicked(int vehicleId, String vehicleReg, int expense, int type) {
-//
-//        DialogInputFragment dialogInputFragment = DialogInputFragment.newInstance(vehicleId, vehicleReg, expense, type);
-//        dialogInputFragment.show(getSupportFragmentManager(), "DialogInputFragment");
-//
-//    }
-//
-//    @Override
-//    public void onPositiveButtonClicked(int vehicleId, String vehicleReg, int type, int expense, String description) {
-//        String method = "transact";
-//        String stringVehicleId = String.valueOf(vehicleId);
-//        String stringExpense = String.valueOf(expense);
-//        String stringType = String.valueOf(type);
-////        String description = "This is an Expense";
-//        String dateTime = String.valueOf(System.currentTimeMillis());
-//
-//        PostToServerTask postToServerTask = new PostToServerTask(this);
-//        postToServerTask.execute(method, stringVehicleId, stringExpense, stringType, description, dateTime);
-//        Log.w(LOG_TAG, "create button clicked " + expense + ": " + description);
-//
-//        startDetailActivity(vehicleId, vehicleReg);
-//    }
-//
+
+
 //
 //    public void showDialogFragment() {
 //
