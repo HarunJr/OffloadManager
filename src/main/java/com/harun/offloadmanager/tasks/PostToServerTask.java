@@ -37,6 +37,7 @@ public class PostToServerTask extends AsyncTask<String, Void, String> {
     Context mContext;
     private OffloadDbHelper dbHelper;
     private SQLiteDatabase db;
+    String userJsonString;
 
     public PostToServerTask(Context context) {
         this.mContext = context;
@@ -48,13 +49,14 @@ public class PostToServerTask extends AsyncTask<String, Void, String> {
     protected String doInBackground(String... params) {
         String insertV_url = "http://192.168.56.1/offloadmanager/insert_vehicle.php";
         String transact_url = "http://192.168.56.1/offloadmanager/transact.php";
-        String vehicle_transaction_url = "http://192.168.56.1/offloadmanager/get_transactions.php";
+        String user_url = "http://192.168.56.1/offloadmanager/insert_user.php";
+        String vehicle_transaction_url = "http://192.168.56.1/offloadmanager/get_data.php";
         String update_url = "http://192.168.56.1/offloadmanager/update.php";
-        String delete_url = "http://192.168.56.11/offloadmanager/delete.php";
+        String delete_url = "http://192.168.56.1/offloadmanager/delete.php";
         String method = params[0];
 
         switch (method) {
-            case "insertV": {
+            case "add_vehicle": {
                 Log.w(LOG_TAG, "doInBackground post");
                 String vehicleReg = params[1];
                 String make = params[2];
@@ -94,26 +96,33 @@ public class PostToServerTask extends AsyncTask<String, Void, String> {
                 }
                 break;
             }
-            case "vehicle_transactions": {
-                Log.w(LOG_TAG, "doInBackground vehicle_transactions");
-                String vehicleReg = params[1];
+            case "register_user": {
+                Log.w(LOG_TAG, "doInBackground register_user");
+                String email = params[1];
+                String phone_no = params[2];
+                String password = params[3];
+
                 String JSON_STRING;
-                String transactionJsonString = null;
+                userJsonString = null;
 
                 HttpURLConnection httpURLConnection = null;
                 BufferedReader bufferedReader = null;
 
                 try {
-                    URL url = new URL(vehicle_transaction_url);
+                    URL url = new URL(user_url);
                     httpURLConnection = (HttpURLConnection) url.openConnection();
                     httpURLConnection.setRequestMethod("POST");
                     httpURLConnection.setDoOutput(true);
+                    httpURLConnection.setDoInput(true);
                     OutputStream OS = httpURLConnection.getOutputStream();
                     BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(OS, "UTF-8"));
 
-                    String data = URLEncoder.encode("vehicle_key", "UTF-8") + "=" + URLEncoder.encode(vehicleReg, "UTF-8") + "&" +
+                    String data = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
+                            URLEncoder.encode("phone_no", "UTF-8") + "=" + URLEncoder.encode(phone_no, "UTF-8") + "&" +
+                            URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8");
 
-                            Log.w(LOG_TAG, "method vehicle_transactions " + vehicleReg);
+                    Log.w(LOG_TAG, "method register_user " + email +","+phone_no+","+password);
+
                     bufferedWriter.write(data);
                     bufferedWriter.flush();
                     bufferedWriter.close();
@@ -126,20 +135,16 @@ public class PostToServerTask extends AsyncTask<String, Void, String> {
 
                     while ((JSON_STRING = bufferedReader.readLine()) != null) {
 
-                        stringBuilder.append(JSON_STRING + "\n");
+                        stringBuilder.append(JSON_STRING).append("\n");
                     }
 
                     IS.close();
 
-                    transactionJsonString = stringBuilder.toString().trim();
-                    Log.w(LOG_TAG, "JSON String: " + transactionJsonString);
-                    getTransactionDataFromJson(transactionJsonString);
+                    userJsonString = stringBuilder.toString().trim();
+                    Log.w(LOG_TAG, "JSON String: " + userJsonString);
 
-                    return "Post Transaction success";
+                    return userJsonString;//"User Registration Successful!";
                 } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    Log.e(LOG_TAG, e.getMessage(), e);
                     e.printStackTrace();
                 } finally {
                     if (httpURLConnection != null) {
@@ -155,7 +160,7 @@ public class PostToServerTask extends AsyncTask<String, Void, String> {
                 }
                 break;
             }
-            case "transact": {
+            case "add_transaction": {
                 Log.w(LOG_TAG, "doInBackground transact");
                 String vehicleReg = params[1];
                 String amount = params[2];
@@ -268,44 +273,48 @@ public class PostToServerTask extends AsyncTask<String, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
+        if (!result.equals(userJsonString)){
+            Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
+        }else {
+            try {
+                getUserDataFromJson(result);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    private void getTransactionDataFromJson(String vehicleJsonString) throws JSONException {
+    private void getUserDataFromJson(String vehicleJsonString) throws JSONException {
 
         //Vehicle information. Each vehicle's detail is an element of "list" array.
-        final String TRANACTION_LIST = "transaction_list";
+        final String USER_LIST = "user_list";
 
         //Vehicle details referenced from JSON
-        final String TRANSACTION_ID = "id";
-        final String VEHICLE_KEY = "vehicle_key";
-        final String TRANSACTION_AMOUNT = "amount";
-        final String TYPE = "type";
-        final String DESCRIPTION = "description";
-        final String TRANSACTION_DATE_TIME = "date_time";
+        final String USER_ID = "user_id";
+        final String EMAIL = "email";
+        final String PHONE_NO = "phone_no";
+        final String PASSWORD = "password";
 
         try {
             JSONObject transactionJson = new JSONObject(vehicleJsonString);
-            JSONArray transactionArray = transactionJson.getJSONArray(TRANACTION_LIST);
+            JSONArray transactionArray = transactionJson.getJSONArray(USER_LIST);
 
             //      Vector<ContentValues> cVVector = new Vector<ContentValues>(transactionArray.length());
 
             for (int i = 0; i < transactionArray.length(); i++) {
                 Log.w(LOG_TAG, "JSON String: " + transactionArray);
-                String transactionId, vehicleKey, amount, type, description, dateTime;
+                String userId, email, phone_no, password;
 
                 JSONObject transactionObject = transactionArray.getJSONObject(i);
 
-                transactionId = transactionObject.getString(TRANSACTION_ID);
-                vehicleKey = transactionObject.getString(VEHICLE_KEY);
-                amount = transactionObject.getString(TRANSACTION_AMOUNT);
-                type = transactionObject.getString(TYPE);
-                description = transactionObject.getString(DESCRIPTION);
-                dateTime = transactionObject.getString(TRANSACTION_DATE_TIME);
+                userId = transactionObject.getString(USER_ID);
+                email = transactionObject.getString(EMAIL);
+                phone_no = transactionObject.getString(PHONE_NO);
+                password = transactionObject.getString(PASSWORD);
 
-                Log.w(LOG_TAG, "From db: " + transactionId + ", " + vehicleKey + ", " + amount + ", " + type + ", " + description + ", " + dateTime);
+                Log.w(LOG_TAG, "From db: " + userId + ", " + email + ", " + password + ", " + phone_no + ", ");
 
-                addToTransactionSQLitedb(transactionId, vehicleKey, amount, type, description, dateTime);
+                addToTransactionSQLitedb(userId, email, phone_no, password);
             }
 
         } catch (JSONException e) {
@@ -324,17 +333,15 @@ public class PostToServerTask extends AsyncTask<String, Void, String> {
     }
 
 
-    private void addToTransactionSQLitedb(String transactionId, String vehicleKey, String amount, String type, String description, String dateTime) {
+    private void addToTransactionSQLitedb(String userId, String email, String phone_no, String password) {
 
         open();
-        ContentValues transactionValues = new ContentValues();
+        ContentValues userValues = new ContentValues();
 
-        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_TRANSACTION_ID, transactionId);
-        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_VEHICLE_KEY, vehicleKey);
-        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_AMOUNT, amount);
-        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_TYPE, type);
-        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_DESCRIPTION, description);
-        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_DATE_TIME, dateTime);
+        userValues.put(OffloadContract.UserEntry.COLUMN_USERS_ID, userId);
+        userValues.put(OffloadContract.UserEntry.COLUMN_EMAIL, email);
+        userValues.put(OffloadContract.UserEntry.COLUMN_PHONE_NO, phone_no);
+        userValues.put(OffloadContract.UserEntry.COLUMN_TYPE, password);
 
         //USE THIS for normal entries
 //        long vehicleRowId=db.insert(VehicleContract.VehicleEntry.TABLE_NAME,null, vehicleValues);
@@ -342,15 +349,15 @@ public class PostToServerTask extends AsyncTask<String, Void, String> {
         //Use this for insert with conflict replace.
 //        long vehicleRowId = db.insertWithOnConflict(VehicleContract.VehicleEntry.TABLE_NAME, null, vehicleValues, SQLiteDatabase.CONFLICT_REPLACE);
 
-        Uri transactionUri = mContext.getContentResolver().insert(OffloadContract.TransactionEntry.CONTENT_URI, transactionValues);
+        Uri transactionUri = mContext.getContentResolver().insert(OffloadContract.UserEntry.CONTENT_URI, userValues);
 
-        long transactionRowId = ContentUris.parseId(transactionUri);
+        long userRowId = ContentUris.parseId(transactionUri);
 
-        if (transactionRowId > 0) {
-            Log.w(LOG_TAG, "Inserted into SQLitedb: " + transactionId + ", " + vehicleKey + ", " + amount + ", " + type + ", " + description + ", " + dateTime);
+        if (userRowId > 0) {
+            Log.w(LOG_TAG, "Inserted into Table UserEntry: " + userId + ", " + email + ", " + phone_no + ", " + password);
 
         } else {
-            Log.w(LOG_TAG, ">>>>ERROR Inserting into SQLitedb: ");
+            Log.w(LOG_TAG, ">>>>ERROR Inserting into UserEntry: ");
         }
 
         close();

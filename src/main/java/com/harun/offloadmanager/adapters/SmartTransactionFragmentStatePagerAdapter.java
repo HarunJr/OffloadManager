@@ -14,8 +14,8 @@ import com.harun.offloadmanager.fragments.IncomeFragment;
 
 public class SmartTransactionFragmentStatePagerAdapter extends FragmentStatePagerAdapter {
     private static final String LOG_TAG = SmartTransactionFragmentStatePagerAdapter.class.getSimpleName();
-    final int PAGE_COUNT = 2;
     private String tabTitles[] = new String[]{"COLLECTION", "EXPENSE"};
+    final int PAGE_COUNT = 2;
     private Context context;
 
     private KeyboardView keyboardView;

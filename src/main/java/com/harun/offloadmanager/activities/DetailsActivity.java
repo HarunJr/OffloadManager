@@ -3,25 +3,17 @@ package com.harun.offloadmanager.activities;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
-import com.harun.offloadmanager.helper.CalendarView;
 import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.fragments.DetailsFragment;
 import com.harun.offloadmanager.fragments.TransactionsFragment;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
 
 public class DetailsActivity extends AppCompatActivity{
     public static final String LOG_TAG = DetailsActivity.class.getSimpleName();
@@ -44,25 +36,6 @@ public class DetailsActivity extends AppCompatActivity{
 
         addDetailsFragment(mUri);
 
-        HashSet<Date> events = new HashSet<>();
-        events.add(new Date());
-
-        CalendarView cv = ((CalendarView)findViewById(R.id.calendar_view));
-        cv.updateCalendar(events);
-
-        // assign event handler
-        cv.setEventHandler(new CalendarView.EventHandler()
-        {
-            @Override
-            public void onDayLongPress(Date date)
-            {
-                // show returned day
-                DateFormat df = SimpleDateFormat.getDateInstance();
-                Toast.makeText(getApplicationContext(), df.format(date), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
         fab = (FloatingActionButton) findViewById(R.id.fabButton);
 
         fab.setOnClickListener(new View.OnClickListener() {
@@ -73,7 +46,6 @@ public class DetailsActivity extends AppCompatActivity{
                                        startTransactionsActivity(vehicleReg);
                                    }
                                }
-
         );
     }
 
@@ -101,8 +73,6 @@ public class DetailsActivity extends AppCompatActivity{
         getSupportActionBar().setTitle(vehicleReg);
 
         //TODO: work on UP button next to title
-        CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-        collapsingToolbarLayout.setTitle(vehicleReg);
     }
 
     private void addDetailsFragment(Uri uri) {

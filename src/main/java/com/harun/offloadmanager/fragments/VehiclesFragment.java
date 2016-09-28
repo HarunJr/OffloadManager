@@ -21,11 +21,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.harun.offloadmanager.DateHelper;
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.adapters.VehiclesAdapter;
 import com.harun.offloadmanager.activities.AddVehicleActivity;
+import com.harun.offloadmanager.activities.LoginActivity;
+import com.harun.offloadmanager.adapters.VehiclesAdapter;
 import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.sync.OffloadSyncAdapter;
 
@@ -40,7 +43,12 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
     private static final String SELECTED_KEY = "selected_position";
     private static final int VEHICLE_LOADER = 0;
 
-    private static final String[] VEHICLE_COLUMN = {
+    public TextView headerVehicleDateView;
+    public TextView headerVehicleCollectionView;
+    public TextView headerVehicleExpenseView;
+    public TextView headerVehicleDifferenceView;
+
+    public static final String[] VEHICLE_COLUMN = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the vehicle & transactions tables in the background
             // (both have an _id column)
@@ -58,7 +66,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
     // must change.
     public static final int COL_VEHICLE_REGISTRATION = 0;
     public static final int COL_REG_DATE_TIME = 1;
-    public static final int COL_VEHICLE_AMOUNT = 2;
+    public static final int COL_VEHICLE_COLLECTION = 2;
     public static final int COL_VEHICLE_EXPENSE = 3;
     public static final int COL_LAST_TRANSACTION_DATE_TIME = 4;
 
@@ -91,6 +99,16 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_vehicles, container, false);
+
+        headerVehicleDateView = (TextView) rootView.findViewById(R.id.item_vehicles_header_date_text_view);
+        headerVehicleCollectionView = (TextView) rootView.findViewById(R.id.item_vehicles_header_collection_text_view);
+        headerVehicleExpenseView = (TextView) rootView.findViewById(R.id.item_vehicles_header_expense_text_view);
+        headerVehicleDifferenceView = (TextView) rootView.findViewById(R.id.item_vehicles_header_profit_text_view);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
+
         View emptyView = rootView.findViewById(R.id.recyclerview_vehicle_empty);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvVehicles);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -109,12 +127,6 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
         mRecyclerView.setAdapter(mVehiclesAdapter);
 
-//        RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL);
-//        mRecyclerView.addItemDecoration(itemDecoration);
-
-        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
-            mPosition = savedInstanceState.getInt(SELECTED_KEY);
-        }
         return rootView;
     }
 
@@ -140,6 +152,9 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
                 return true;
             case R.id.action_refresh:
                 updateView();
+                return true;
+            case R.id.action_logout:
+                startActivity(new Intent(getActivity(), LoginActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -174,30 +189,66 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.w(LOG_TAG, "onCreateLoader: " + args);
+        Log.w(LOG_TAG, "onCreateLoader: " + id +" "+args);
         String sortOrder = OffloadContract.VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME + " DESC";
 
-        return new CursorLoader(
-                getActivity(),
-                OffloadContract.VehicleEntry.CONTENT_URI,
-                VEHICLE_COLUMN,
-                null,
-                null,
-                sortOrder
-        );
+            return new CursorLoader(
+                    getActivity(),
+                    OffloadContract.VehicleEntry.CONTENT_URI,
+                    VEHICLE_COLUMN,
+                    null,
+                    null,
+                    sortOrder
+            );
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.w(LOG_TAG, "onLoadFinished: " + data.getCount());
 
-        mVehiclesAdapter.swapCursor(data);
+        if (data != null && data.moveToFirst()) {
 
-        if (mPosition != RecyclerView.NO_POSITION) {
-            // If we don't need to restart the loader, and there's a desired position to restore
-            // to, do so now.
-            mRecyclerView.smoothScrollToPosition(mPosition);
+            long dateTime = System.currentTimeMillis();
+            double dailyVehicleCollection;
+            double dailyVehicleExpense;
+
+            double collectionTotal = 0.0;
+            double expenseTotal = 0.0;
+
+            //TODO: Perform in content provider e.g SUM()
+            do {
+                dailyVehicleCollection = data.getDouble(COL_VEHICLE_COLLECTION);
+                dailyVehicleExpense = data.getDouble(COL_VEHICLE_EXPENSE);
+                collectionTotal += dailyVehicleCollection;
+                expenseTotal += dailyVehicleExpense;
+
+                Log.w(LOG_TAG, "dailyTotalCollection: " + collectionTotal+"--"+ expenseTotal);
+            }
+            while (data.moveToNext());
+
+            Log.w(LOG_TAG, "total: " + collectionTotal);
+            double difference = collectionTotal - expenseTotal;
+
+            String day = DateHelper.getFormattedDayString(dateTime);
+            String formattedCollection = DateHelper.getFormattedCurrency(getContext(), collectionTotal);
+            String formattedExpense = DateHelper.getFormattedCurrencyExpense(getContext(), expenseTotal);
+            String formattedDifference = DateHelper.getFormattedCurrency(getContext(), difference);
+
+            headerVehicleDateView.setText(day);
+            headerVehicleCollectionView.setText(formattedCollection);
+            headerVehicleExpenseView.setText(formattedExpense);
+            headerVehicleDifferenceView.setText(formattedDifference);
+
+            mVehiclesAdapter.swapCursor(data);
+
+            if (mPosition != RecyclerView.NO_POSITION) {
+                // If we don't need to restart the loader, and there's a desired position to restore
+                // to, do so now.
+                mRecyclerView.smoothScrollToPosition(mPosition);
+            }
+//            Log.w(LOG_TAG, "onLoadFinished: " + data.getCount()+", "+ dailyTotalCollection);
         }
+
         //TODO: Update EmptyView
     }
 

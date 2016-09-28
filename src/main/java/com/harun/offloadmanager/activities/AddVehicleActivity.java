@@ -57,7 +57,7 @@ public class AddVehicleActivity extends AppCompatActivity {
                 Log.w(LOG_TAG, "onClick ");
 
                 if (isNetworkAvailable()){
-                    String method = "insertV";
+                    String method = "add_vehicle";
                     String vehicleRegistration = mRegInput.getText().toString();
                     String vehicleMake = makeInput.getText().toString();
                     String vehicleModel = modelInput.getText().toString();

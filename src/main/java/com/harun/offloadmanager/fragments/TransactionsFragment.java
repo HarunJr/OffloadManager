@@ -1,5 +1,6 @@
 package com.harun.offloadmanager.fragments;
 
+import android.graphics.Color;
 import android.inputmethodservice.KeyboardView;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
@@ -12,13 +13,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
-import com.harun.offloadmanager.helper.NumPad;
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.adapters.SmartTransactionFragmentStatePagerAdapter;
 import com.harun.offloadmanager.activities.TransactionsActivity;
+import com.harun.offloadmanager.adapters.SmartTransactionFragmentStatePagerAdapter;
+import com.harun.offloadmanager.helper.NumPad;
 
 public class TransactionsFragment extends Fragment {
     public static final String LOG_TAG = TransactionsFragment.class.getSimpleName();
+    public static String POSITION = "POSITION";
 
     private ViewPager mPager;
     private TabLayout mTabs;
@@ -68,7 +70,7 @@ public class TransactionsFragment extends Fragment {
         keyboardView = (KeyboardView) rootView.findViewById(R.id.keyboard_view);
         numPad = new NumPad(getActivity(), keyboardView, R.xml.num_pad);
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        Log.w(LOG_TAG, "onCreateView: " + vehicleReg + ", " +getActivity());
+        Log.w(LOG_TAG, "onCreateView: " + vehicleReg + ", " + getActivity());
 
         return rootView;
     }
@@ -81,7 +83,28 @@ public class TransactionsFragment extends Fragment {
                 getActivity().getSupportFragmentManager(), getActivity(), vehicleReg, coordinatorLayout, keyboardView, numPad);
         this.mPager.setAdapter(pagerAdapter);
         // Bind the slidingTabStrips to the ViewPager
+//        mTabs.setTabTextColors(Color.parseColor("#ED1946"), Color.parseColor("#10EDC5"));
+
+        this.mPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+
+                //TODO: Handle flickering of tabText when changing
+                switch (position) {
+                    case 0:
+                        mTabs.setTabTextColors(Color.parseColor("#ED1946"), Color.parseColor("#10EDC5"));
+                        mTabs.setSelectedTabIndicatorColor(Color.parseColor("#10EDC5"));
+                        break;
+                    case 1:
+                        mTabs.setTabTextColors(Color.parseColor("#10EDC5"), Color.parseColor("#ED1946"));
+                        mTabs.setSelectedTabIndicatorColor(Color.parseColor("#ED1946"));
+                        break;
+                }
+            }
+        });
+
         this.mTabs.setTabGravity(TabLayout.GRAVITY_FILL);
         this.mTabs.setupWithViewPager(mPager);
     }
+
 }

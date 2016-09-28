@@ -1,19 +1,23 @@
 package com.harun.offloadmanager.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
-import com.harun.offloadmanager.fragments.DialogInputFragment;
-import com.harun.offloadmanager.tasks.PostToServerTask;
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.data.OffloadContract;
+import com.harun.offloadmanager.fragments.DialogInputFragment;
 import com.harun.offloadmanager.fragments.ExpenseFragment;
 import com.harun.offloadmanager.fragments.IncomeFragment;
 import com.harun.offloadmanager.fragments.TransactionsFragment;
+import com.harun.offloadmanager.tasks.PostToServerTask;
 
 public class TransactionsActivity extends AppCompatActivity implements IncomeFragment.OnSendCollectionListener,
         ExpenseFragment.OnSendExpenseListener, DialogInputFragment.OnSendDescriptionListener{
@@ -44,6 +48,10 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
 
         assert getSupportActionBar() != null;
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        @SuppressLint("PrivateResource") final Drawable upArrow = ContextCompat.getDrawable(getBaseContext(), R.drawable.abc_ic_ab_back_material);
+        upArrow.setColorFilter(Color.parseColor("#FFFFFF"), PorterDuff.Mode.SRC_ATOP);
+        getSupportActionBar().setHomeAsUpIndicator(upArrow);
+
         getSupportActionBar().setTitle(vehicleReg);
 
     }
@@ -77,8 +85,8 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
         PostToServerTask postToServerTask = new PostToServerTask(getApplicationContext());
         postToServerTask.execute(method, reg, stringCollection, stringType, description, dateTime);
 
-        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(reg));
-//        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+//        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(reg));
+        startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
 
     @Override
@@ -90,7 +98,7 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
 
     @Override
     public void onPositiveButtonClicked(String vehicleReg, int type, int expense, String description) {
-        String method = "transact";
+        String method = "add_transaction";
         String stringExpense = String.valueOf(expense);
         String stringType = String.valueOf(type);
 //        String description = "This is an Expense";
@@ -100,7 +108,8 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
         postToServerTask.execute(method, vehicleReg, stringExpense, stringType, description, dateTime);
         Log.w(LOG_TAG, "create button clicked " + expense + ": " + description);
 
-        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(vehicleReg));
+//        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(vehicleReg));
+        startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
     }
 

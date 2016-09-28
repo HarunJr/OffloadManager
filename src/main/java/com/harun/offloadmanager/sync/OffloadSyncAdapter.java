@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.harun.offloadmanager.R;
+import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.data.OffloadDbHelper;
 
 import org.json.JSONArray;
@@ -93,7 +94,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private void getVehicleDataFromJson(String vehicleJsonString) throws JSONException {
 
-        //Vehicle information. Each vehicle's detail is an element of "list" array.
+        //Vehicle information. Each vehicle's detail is an element of "vehicle_list" array.
         final String VEHICLE_LIST = "vehicle_list";
 
         //Vehicle details referenced from JSON
@@ -102,7 +103,6 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
         final String VEHICLE_TOTAL_DAY_COLLECTION = "v_day_total_collection";
         final String VEHICLE_TOTAL_DAY_EXPENSE = "v_day_total_expense";
         final String VEHICLE_LAST_TRANSACTION_DATE = "last_transaction_date";
-
 
         try {
             JSONObject vehicleJson = new JSONObject(vehicleJsonString);
@@ -123,6 +123,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 addToVehiclesSQLitedb( vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction);
 
+                getCurrentDayTransactionFromJson(vehicleObject);
             }
 
         } catch (JSONException e) {
@@ -132,11 +133,84 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
 
     }
 
+    private void getCurrentDayTransactionFromJson(JSONObject vehicleObject) {
+
+        //Transaction information. Each Transaction's detail is an element of "transaction_list" array.
+        final String TRANACTION_LIST = "transaction_list";
+
+        //Transaction details referenced from JSON
+        final String TRANSACTION_ID = "id";
+        final String VEHICLE_KEY = "vehicle_key";
+        final String TRANSACTION_AMOUNT = "amount";
+        final String TYPE = "type";
+        final String DESCRIPTION = "description";
+        final String TRANSACTION_DATE_TIME = "date_time";
+        JSONArray transactionArray = null;
+        try {
+            transactionArray = vehicleObject.getJSONArray(TRANACTION_LIST);
+
+            for (int j = 0; j <transactionArray.length(); j++){
+                String transactionId, vehicleKey, amount, type, description, dateTime;
+
+                JSONObject transactionObject = transactionArray.getJSONObject(j);
+
+                transactionId = transactionObject.getString(TRANSACTION_ID);
+                vehicleKey = transactionObject.getString(VEHICLE_KEY);
+                amount = transactionObject.getString(TRANSACTION_AMOUNT);
+                type = transactionObject.getString(TYPE);
+                description = transactionObject.getString(DESCRIPTION);
+                dateTime = transactionObject.getString(TRANSACTION_DATE_TIME);
+
+                Log.w(LOG_TAG, "From db: " + transactionId + ", " + vehicleKey+", "+ amount + ", " + type + ", " + description + ", " + dateTime);
+
+                addToTransactionSQLitedb(transactionId, vehicleKey, amount, type, description, dateTime);
+
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public void open() throws SQLException {
         db = dbHelper.getWritableDatabase();
     }
 
-    private void addToVehiclesSQLitedb(String vehicleReg, String regDate, String vehicleCollection, String vehicleExpense, String vehicleLastTransaction) {
+
+    private void addToTransactionSQLitedb(String transactionId, String vehicleKey, String amount, String type, String description, String dateTime) {
+        open();
+        ContentValues transactionValues = new ContentValues();
+
+        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_TRANSACTION_ID, transactionId);
+        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_VEHICLE_KEY, vehicleKey);
+        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_AMOUNT, amount);
+        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_TYPE, type);
+        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_DESCRIPTION, description);
+        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_DATE_TIME, dateTime);
+
+        //USE THIS for normal entries
+//        long vehicleRowId=db.insert(VehicleContract.VehicleEntry.TABLE_NAME,null, vehicleValues);
+
+        //Use this for insert with conflict replace.
+//        long vehicleRowId = db.insertWithOnConflict(VehicleContract.VehicleEntry.TABLE_NAME, null, vehicleValues, SQLiteDatabase.CONFLICT_REPLACE);
+
+        Uri transactionUri = getContext().getContentResolver().insert(OffloadContract.TransactionEntry.CONTENT_URI, transactionValues);
+
+        long transactionRowId = ContentUris.parseId(transactionUri);
+
+        if (transactionRowId > 0) {
+            Log.w(LOG_TAG, "Transactions Inserted into SQLitedb: " + transactionId + ", " + vehicleKey + ", " + amount+ ", " + type+ ", " + description+ ", " + dateTime);
+
+        } else {
+            Log.w(LOG_TAG, ">>>>ERROR Inserting into SQLitedb: ");
+
+        }
+
+        close();
+    }
+
+    public void addToVehiclesSQLitedb(String vehicleReg, String regDate, String vehicleCollection, String vehicleExpense, String vehicleLastTransaction) {
 
         open();
         ContentValues vehicleValues = new ContentValues();
@@ -153,6 +227,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
         //Use this for insert with conflict replace.
 //        long vehicleRowId = db.insertWithOnConflict(VehicleContract.VehicleEntry.TABLE_NAME, null, vehicleValues, SQLiteDatabase.CONFLICT_REPLACE);
 
+        //TODO: bulkInsert
         Uri vehicleUri = getContext().getContentResolver().insert(VehicleEntry.CONTENT_URI, vehicleValues);
 
         long vehicleRowId = ContentUris.parseId(vehicleUri);

@@ -13,7 +13,10 @@ public class Constants {
     public static final String VEHICLE_REG = "vehicleReg";
     public static final String DAILY_TOTAL_COLLECTION = "vehicleCollection";
     public static final String DAILY_TOTAL_EXPENSE = "vehicleExpense";
+    public static final String MIN_DATE = "minDate";
 
+    public static final String CALENDAR_DAY ="calendarDay" ;
+    public static final String NEXT_DAY ="nextDay" ;
     /**
      The caller references the constants using <tt>Consts.EMPTY_STRING</tt>,
      and so on. Thus, the caller should be prevented from constructing objects of

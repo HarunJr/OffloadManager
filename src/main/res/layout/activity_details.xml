@@ -9,35 +9,13 @@
         android:id="@+id/details_appBarLayout"
         app:elevation="0dp"
         android:layout_width="match_parent"
-        android:layout_height="360dp">
+        android:layout_height="wrap_content">
 
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/collapsing_toolbar"
-            app:toolbarId="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            app:expandedTitleMarginEnd="64dp"
-            app:expandedTitleMarginStart="48dp"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:collapsedTitleTextAppearance="@style/TextAppearance.AppCompat.Title.Inverse"
-            app:expandedTitleTextAppearance="@style/TextAppearance.AppCompat.Title.Inverse">
+        <include
+            android:id="@+id/detail_activity_toolbar"
+            layout="@layout/tool_bar"
+            app:elevation="0dp"/>
 
-            <include
-                android:id="@+id/detail_activity_toolbar"
-                layout="@layout/tool_bar"
-                app:layout_collapseMode="pin"
-                app:elevation="0dp"/>
-
-            <com.harun.offloadmanager.helper.CalendarView
-                xmlns:calendarNS="http://schemas.android.com/apk/res/com.harun.offloadmanager"
-                android:id="@+id/calendar_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                calendarNS:dateFormat="MMMM yyyy"/>
-
-
-        </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"

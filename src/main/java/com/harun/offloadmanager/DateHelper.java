@@ -18,20 +18,31 @@ public class DateHelper {
     public static String getFormattedDateTimeString(DetailsAdapter detailsAdapter, long dateInMillis){
 
         DateTimeFormatter dateTimeFormat = DateTimeFormat.forPattern("dd/MMMM/yyyy h:mm a");
-        DateTime dateTime = new DateTime(Long.valueOf(dateInMillis), DateTimeZone.UTC);
+        DateTime dateTime = new DateTime(Long.valueOf(dateInMillis), DateTimeZone.getDefault());
 //        Log.w(LOG_TAG, "DateTime: " + dateTime);
         return dateTimeFormat.print(dateTime);
     }
 
+    public static String getFormattedSimpleDayFromString(String calendarString){
+        DateTimeFormatter dayFormat = DateTimeFormat.forPattern("d/M/yyyy");
+        DateTime dateTime = new DateTime(calendarString, DateTimeZone.getDefault());
+        return dayFormat.print(dateTime);
+    }
+    public static String getFormattedSimpleDayString(long dateInMillis){
+        DateTimeFormatter dayFormat = DateTimeFormat.forPattern("d/M/yyyy");
+        DateTime dateTime = new DateTime(Long.valueOf(dateInMillis), DateTimeZone.getDefault());
+        return dayFormat.print(dateTime);
+    }
+
     public static String getFormattedDayString(long dateInMillis){
         DateTimeFormatter dayFormat = DateTimeFormat.forPattern("dd/MMMM/yyyy");
-        DateTime dateTime = new DateTime(Long.valueOf(dateInMillis), DateTimeZone.UTC);
+        DateTime dateTime = new DateTime(Long.valueOf(dateInMillis), DateTimeZone.getDefault());
         return dayFormat.print(dateTime);
     }
 
     public static String getFormattedTimeString(long dateInMillis){
         DateTimeFormatter dayFormat = DateTimeFormat.forPattern(" h:mm a");
-        DateTime dateTime = new DateTime(Long.valueOf(dateInMillis), DateTimeZone.UTC);
+        DateTime dateTime = new DateTime(Long.valueOf(dateInMillis), DateTimeZone.getDefault());
         return dayFormat.print(dateTime);
     }
 

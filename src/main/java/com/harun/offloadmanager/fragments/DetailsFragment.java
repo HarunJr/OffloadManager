@@ -38,8 +38,9 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     public TextView headerExpenseView;
     public TextView headerDifferenceView;
 
-    private static final String[] TRANSACTION_COLUMNS = {
+    protected static final String[] TRANSACTION_COLUMNS = {
             OffloadContract.TransactionEntry.TABLE_NAME + "." + OffloadContract.TransactionEntry.COLUMN_TRANSACTION_ID,
+            OffloadContract.TransactionEntry.COLUMN_VEHICLE_KEY,
             OffloadContract.TransactionEntry.COLUMN_AMOUNT,
             OffloadContract.TransactionEntry.COLUMN_TYPE,
             OffloadContract.TransactionEntry.COLUMN_DESCRIPTION,
@@ -47,10 +48,11 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     };
 
     public static final int COL_TRANSACTION_ID = 0;
-    public static final int COL_AMOUNT = 1;
-    public static final int COL_TYPE = 2;
-    public static final int COL_DESCRIPTION = 3;
-    public static final int COL_DATE_TIME = 4;
+    public static final int COL_VEHICLE_KEY = 1;
+    public static final int COL_AMOUNT = 2;
+    public static final int COL_TYPE = 3;
+    public static final int COL_DESCRIPTION = 4;
+    public static final int COL_DATE_TIME = 5;
 
     public DetailsFragment() {
         // Required empty public constructor
@@ -69,17 +71,17 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mUri = arguments.getParcelable(DetailsFragment.DETAIL_URI);
+            Log.w(LOG_TAG, "onCreate " + mUri);
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              final Bundle savedInstanceState) {
-
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            mUri = arguments.getParcelable(DetailsFragment.DETAIL_URI);
-            Log.w(LOG_TAG, "onCreateView " + mUri);
-        }
 
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_details, container, false);
@@ -102,7 +104,6 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL);
         mRecyclerView.addItemDecoration(itemDecoration);
 
-
         Log.w(LOG_TAG, "onCreateView " + mDetailsAdapter);
 
         return rootView;
@@ -119,12 +120,10 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     @Override
     public void onStart() {
         super.onStart();
-        updateTransactions();
+//        updateTransactions();
     }
 
     private void updateTransactions() {
-
-        String method = "vehicle_transactions";
 
         FetchTransactionTask transactionTask = new FetchTransactionTask(getContext());
         transactionTask.execute();
@@ -161,7 +160,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
 
             long dateTime = data.getLong(DetailsFragment.COL_DATE_TIME);
             double dailyTotalCollection = Double.parseDouble(OffloadContract.VehicleEntry.getDailyTotalCollectionFromUri(mUri));
-            double dailyTotalExpense = Double.parseDouble(OffloadContract.VehicleEntry.getDailyTotlaExpenseFromUri(mUri));
+            double dailyTotalExpense = Double.parseDouble(OffloadContract.VehicleEntry.getDailyTotalExpenseFromUri(mUri));
             double difference = dailyTotalCollection - dailyTotalExpense;
 
             String day = DateHelper.getFormattedDayString(dateTime);

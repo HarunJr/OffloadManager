@@ -67,7 +67,7 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
             int adapterPosition = getAdapterPosition();
             mCursor.moveToPosition(adapterPosition);
             String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
-            int dailyTotalCollection = mCursor.getInt(VehiclesFragment.COL_VEHICLE_AMOUNT);
+            int dailyTotalCollection = mCursor.getInt(VehiclesFragment.COL_VEHICLE_COLLECTION);
             int dailyTotalExpense = mCursor.getInt(VehiclesFragment.COL_VEHICLE_EXPENSE);
             mClickHandler.onClick(OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactions(vehicleReg, dailyTotalCollection, dailyTotalExpense), this);
         }
@@ -92,12 +92,12 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         mCursor.moveToPosition(position);
-        Log.w(LOG_TAG, "onBindViewHolder: "+mCursor.getCount()+", "+position+ " vehicle:"+ VehiclesFragment.COL_VEHICLE_REGISTRATION);
+        Log.w(LOG_TAG, "onBindViewHolder: "+mCursor.getCount()+", "+position+ " vehicle:"+ mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION));
 
         // Read values amount from cursor
 //        String dateTimeString = mCursor.getString(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
         long dateTimeMillis = mCursor.getLong(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
-        double amount = mCursor.getDouble(VehiclesFragment.COL_VEHICLE_AMOUNT);
+        double amount = mCursor.getDouble(VehiclesFragment.COL_VEHICLE_COLLECTION);
         double expense = mCursor.getDouble(VehiclesFragment.COL_VEHICLE_EXPENSE);
         String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
 
@@ -169,7 +169,7 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
 //        viewHolder.vehicleView.setText(vehicleReg);
 //
 //        // Read weather amount from cursor
-//        String amount = cursor.getString(MainFragment.COL_VEHICLE_AMOUNT);
+//        String amount = cursor.getString(MainFragment.COL_VEHICLE_COLLECTION);
 //        // Find TextView and set amount on it
 //        viewHolder.amountView.setText(amount);
 //

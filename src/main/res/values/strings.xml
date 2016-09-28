@@ -38,5 +38,17 @@
     <string name="header_label">Header</string>
     <string name="amount_label">amount</string>
     <string name="date_label">date</string>
+    <string name="vehicles_history_title_label">Vehicles History</string>
+    <string name="login_button">Login</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_username">Username</string>
+    <string name="welcome_label">Welcome</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_phone_number">+254 Phone Number</string>
+    <string name="register_label">Register</string>
+    <string name="logout_label">Logout</string>
+    <string name="signup_link">Don\'t have an account? Sign Up</string>
+    <string name="signup_label">Sign Up</string>
+    <string name="login_link">Already Registered? Login</string>
 
 </resources>

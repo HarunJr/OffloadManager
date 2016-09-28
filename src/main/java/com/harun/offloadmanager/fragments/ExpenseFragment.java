@@ -1,6 +1,8 @@
 package com.harun.offloadmanager.fragments;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.graphics.Typeface;
 import android.inputmethodservice.KeyboardView;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.harun.offloadmanager.helper.NumPad;
 import com.harun.offloadmanager.R;
@@ -81,24 +84,48 @@ public class ExpenseFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 //        mTabs.setTabTextColors(ColorStateList.valueOf(ContextCompat.getColor(mContext,R.color.colorAccent)));
 
+        mExpenseInput.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
         mExpenseInput.requestFocus();
         //Call numberPad Keyboard class
 //        numPad = new NumPad(getActivity(), keyboardView,R.xml.num_pad);
+
         mNumPad.registerEditText(mExpenseInput, mType);
         Log.w(LOG_TAG, "onCreateView: " + mExpenseInput + ", " + mVehicleReg);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getActivity() != null){
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (getActivity() != null){
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+        }
+    }
+
 
     public void openDescriptionDialogue(EditText edittext) {
         Log.w(LOG_TAG, "sendExpenseData: ");
         mExpenseInput = edittext;
 
-        String method = "transact";
-        int expense = Integer.parseInt(mExpenseInput.getText().toString());
-        int type = Integer.parseInt(String.valueOf(mType));
+        if (mExpenseInput.getText().toString().trim().length() != 0){
+            String method = "add_transaction";
+            int expense = Integer.parseInt(mExpenseInput.getText().toString());
+            int type = Integer.parseInt(String.valueOf(mType));
 
-        Log.w(LOG_TAG, "onCreateView: " + expense + ", " + type);
-        ((OnSendExpenseListener) mContext).onExpenseButtonClicked(
-                mVehicleReg, method, expense, type);
+            Log.w(LOG_TAG, "onCreateView: " + expense + ", " + type);
+            ((OnSendExpenseListener) mContext).onExpenseButtonClicked(
+                    mVehicleReg, method, expense, type);
+        }else {
+            Toast.makeText(mContext, "Please Enter Expense To Continue ", Toast.LENGTH_LONG).show();
+        }
+
     }
 
     public interface OnSendExpenseListener {

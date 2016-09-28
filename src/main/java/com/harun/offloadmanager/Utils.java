@@ -17,4 +17,8 @@ public class Utils {
     public static int getTabsHeight(Context context) {
         return (int) context.getResources().getDimension(R.dimen.tabsHeight);
     }
+
+    public static int getAppBarHeight(Context context) {
+        return (int) context.getResources().getDimension(R.dimen.appBarHeight);
+    }
 }

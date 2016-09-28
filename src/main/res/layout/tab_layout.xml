@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     app:tabIndicatorHeight="2dp"
     android:background="@color/colorPrimary"
-    app:tabTextColor="@android:color/white"
+    app:tabTextColor="@color/colorAccentRed"
     app:tabSelectedTextColor="@color/colorAccent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">

@@ -13,6 +13,8 @@ public class ScrollingFABBehavior extends FloatingActionButton.Behavior {
     public ScrollingFABBehavior(Context context, AttributeSet attrs) {
         super();
         this.toolbarHeight = Utils.getToolbarHeight(context);
+//        this.toolbarHeight = Utils.getAppBarHeight(context);
+
     }
 
     @Override

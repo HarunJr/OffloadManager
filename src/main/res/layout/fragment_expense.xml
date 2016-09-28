@@ -12,13 +12,12 @@ tools:context=".fragments.IncomeFragment">
     android:layout_height="wrap_content">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
         <EditText
             android:id="@+id/expense_input"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:layout_marginTop="100dp"
             android:background="@android:color/transparent"
             android:cursorVisible="false"
             android:gravity="center"

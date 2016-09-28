@@ -9,8 +9,9 @@
         android:id="@+id/header_cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
         android:orientation="vertical">
-
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -24,14 +25,17 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:padding="8dp"
+                android:textColor="@android:color/white"
                 android:text="@string/header_label" />
 
             <TextView
                 android:id="@+id/item_header_profit_text_view"
+                style="@style/LargeRobotoTextViewStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:layout_below="@+id/item_header_date_text_view"
+                android:textColor="@android:color/white"
                 android:padding="8dp" />
 
             <TextView
@@ -40,7 +44,10 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
+                android:layout_marginLeft="110dp"
+                android:layout_marginStart="110dp"
                 android:layout_below="@+id/item_header_profit_text_view"
+                android:textColor="@android:color/white"
                 android:padding="8dp" />
 
             <TextView
@@ -49,7 +56,10 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
+                android:layout_marginRight="110dp"
+                android:layout_marginEnd="110dp"
                 android:layout_below="@+id/item_header_profit_text_view"
+                android:textColor="@android:color/white"
                 android:padding="8dp" />
 
         </RelativeLayout>
@@ -67,7 +77,7 @@
         android:id="@+id/stickylistheaders_details_empty"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_horizontal"
+        android:gravity="center_vertical"
         android:paddingBottom="@dimen/activity_vertical_margin"
         android:paddingEnd="@dimen/activity_horizontal_margin"
         android:paddingLeft="@dimen/activity_horizontal_margin"

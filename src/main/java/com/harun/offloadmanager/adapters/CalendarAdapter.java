@@ -3,6 +3,7 @@ package com.harun.offloadmanager.adapters;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import java.util.HashSet;
  * Created by HARUN on 8/24/2016.
  */
 public class CalendarAdapter extends ArrayAdapter<Date> {
+    public static final String LOG_TAG = CalendarAdapter.class.getSimpleName();
     // days with events
     private HashSet<Date> eventDays;
 
@@ -41,6 +43,8 @@ public class CalendarAdapter extends ArrayAdapter<Date> {
         int month = date.getMonth();
         int year = date.getYear();
 
+        Log.w(LOG_TAG, "getView " + date +"/"+day+"/"+month+"/"+ year);
+
         // today
         Date today = new Date();
 
@@ -59,26 +63,27 @@ public class CalendarAdapter extends ArrayAdapter<Date> {
                         eventDate.getYear() == year)
                 {
                     // mark this day for event
-                    view.setBackgroundResource(R.drawable.ic_alarm_white_24dp);
+                    //TODO: Add circle with accent color
+//                    view.setBackgroundResource(R.drawable.ic_alarm_white_24dp);
                     break;
                 }
             }
         }
 
         // clear styling
-        ((TextView)view).setTypeface(null, Typeface.NORMAL);
-        ((TextView)view).setTextColor(Color.BLACK);
+//        ((TextView)view).setTypeface(null, Typeface.NORMAL);
+        ((TextView)view).setTextColor(Color.WHITE);
 
         if (month != today.getMonth() || year != today.getYear())
         {
             // if this day is outside current month, grey it out
-            ((TextView)view).setTextColor(getContext().getResources().getColor(R.color.greyed_out));
+            ((TextView)view).setTextColor(getContext().getResources().getColor(R.color.colorPrimaryText));
         }
         else if (day == today.getDate())
         {
             // if it is today, set it to blue/bold
             ((TextView)view).setTypeface(null, Typeface.BOLD);
-            ((TextView)view).setTextColor(getContext().getResources().getColor(R.color.today));
+            ((TextView)view).setTextColor(getContext().getResources().getColor(R.color.colorAccent));
         }
 
         // set text
