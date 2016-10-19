@@ -131,7 +131,6 @@ public class FetchTransactionTask extends AsyncTask<Void, Void, String> {
                     addToTransactionSQLitedb(transactionId, vehicleKey, amount, type, description, dateTime);
 
                 }
-
             }
 
         } catch (JSONException e) {

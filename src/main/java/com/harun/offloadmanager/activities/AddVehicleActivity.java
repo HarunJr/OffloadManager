@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.harun.offloadmanager.Constants;
-import com.harun.offloadmanager.tasks.PostToServerTask;
+import com.harun.offloadmanager.tasks.ServerRequest;
 import com.harun.offloadmanager.R;
 
 public class AddVehicleActivity extends AppCompatActivity {
@@ -67,7 +67,7 @@ public class AddVehicleActivity extends AppCompatActivity {
 
                     Log.w(LOG_TAG, "create button clicked "+vehicleRegistration +": "+dateTime);
 
-                    PostToServerTask postToServerTask = new PostToServerTask(getBaseContext());
+                    ServerRequest postToServerTask = new ServerRequest(getBaseContext());
                     postToServerTask.execute(
                             method,
                             vehicleRegistration,

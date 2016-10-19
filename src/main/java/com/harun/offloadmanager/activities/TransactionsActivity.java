@@ -17,7 +17,7 @@ import com.harun.offloadmanager.fragments.DialogInputFragment;
 import com.harun.offloadmanager.fragments.ExpenseFragment;
 import com.harun.offloadmanager.fragments.IncomeFragment;
 import com.harun.offloadmanager.fragments.TransactionsFragment;
-import com.harun.offloadmanager.tasks.PostToServerTask;
+import com.harun.offloadmanager.tasks.ServerRequest;
 
 public class TransactionsActivity extends AppCompatActivity implements IncomeFragment.OnSendCollectionListener,
         ExpenseFragment.OnSendExpenseListener, DialogInputFragment.OnSendDescriptionListener{
@@ -82,7 +82,7 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
         String stringType = String.valueOf(type);
         String dateTime = String.valueOf(System.currentTimeMillis());
 
-        PostToServerTask postToServerTask = new PostToServerTask(getApplicationContext());
+        ServerRequest postToServerTask = new ServerRequest(this);
         postToServerTask.execute(method, reg, stringCollection, stringType, description, dateTime);
 
 //        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(reg));
@@ -104,8 +104,8 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
 //        String description = "This is an Expense";
         String dateTime = String.valueOf(System.currentTimeMillis());
 
-        PostToServerTask postToServerTask = new PostToServerTask(this);
-        postToServerTask.execute(method, vehicleReg, stringExpense, stringType, description, dateTime);
+        ServerRequest serverRequest = new ServerRequest(this);
+        serverRequest.execute(method, vehicleReg, stringExpense, stringType, description, dateTime);
         Log.w(LOG_TAG, "create button clicked " + expense + ": " + description);
 
 //        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(vehicleReg));

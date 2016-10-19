@@ -12,14 +12,9 @@ import android.widget.TextView;
 
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.Utilities;
-import com.harun.offloadmanager.VehicleModel;
 import com.harun.offloadmanager.fragments.DetailsFragment;
 import com.harun.offloadmanager.fragments.VehiclesFragment;
 import com.harun.offloadmanager.sync.OffloadSyncAdapter;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by HARUN on 9/14/2016.
@@ -52,7 +47,7 @@ public class VehiclesHistoryAdapter extends RecyclerView.Adapter<VehiclesHistory
 
         // Read values amount from cursor
 //        String dateTimeString = mCursor.getString(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
-        int type = mCursor.getInt(DetailsFragment.COL_TYPE);
+//        int type = mCursor.getInt(DetailsFragment.COL_TYPE);
         String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
 
         String formattedAmount = null;
@@ -80,29 +75,25 @@ public class VehiclesHistoryAdapter extends RecyclerView.Adapter<VehiclesHistory
 //            Log.w(LOG_TAG, "vehicleHistory:"+ nonDupList);
 //        }
 
-        VehicleModel vehicleModel= new VehicleModel();
-        ArrayList<VehicleModel> vehicleHistory = new ArrayList<>();
+//        VehicleModel vehicleModel= new VehicleModel();
+//        ArrayList<VehicleModel> vehicleHistory = new ArrayList<>();
+//
+//            vehicleModel = new VehicleModel();
+//            vehicleModel.setVehicleRegistration(vehicleReg);
+//            vehicleHistory.add(vehicleModel);
+//
+//            Set<VehicleModel> nonDup = new HashSet<>();
+//            nonDup.addAll(vehicleHistory);
+//            vehicleHistory.clear();
+//            vehicleHistory.addAll(nonDup);
 
-            vehicleModel = new VehicleModel();
-            vehicleModel.setVehicleRegistration(vehicleReg);
-            vehicleHistory.add(vehicleModel);
+ //       Log.w(LOG_TAG, "vehicleHistory: nonDupList:" + vehicleModel.getVehicleRegistration());
 
-            Set<VehicleModel> nonDup = new HashSet<>();
-            nonDup.addAll(vehicleHistory);
-            vehicleHistory.clear();
-            vehicleHistory.addAll(nonDup);
+        expense = mCursor.getDouble(mCursor.getColumnIndex("EXPENSE"));
+        formattedExpense = Utilities.getFormattedCurrencyExpense(mContext, expense);
 
-        Log.w(LOG_TAG, "vehicleHistory: nonDupList:" + vehicleModel.getVehicleRegistration());
-
-        if (type != 0) {
-            expense = mCursor.getDouble(mCursor.getColumnIndex("EXPENSE"));
-            formattedExpense = Utilities.getFormattedCurrencyExpense(mContext, expense);
-            Log.w(LOG_TAG, "expense: " + vehicleReg + ", " + " " + expense);
-        } else {
-            amount = mCursor.getDouble(mCursor.getColumnIndex("COLLECTION"));
-            formattedAmount = Utilities.getFormattedCurrency(mContext, amount);
-            Log.w(LOG_TAG, "amount: " + vehicleReg + ", " + " " + amount);
-        }
+        amount = mCursor.getDouble(mCursor.getColumnIndex("COLLECTION"));
+        formattedAmount = Utilities.getFormattedCurrency(mContext, amount);
 
 //        offloadSyncAdapter.addToVehiclesSQLitedb(vehicleReg, null, amount, expense, null);
 

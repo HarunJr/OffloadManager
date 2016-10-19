@@ -83,7 +83,6 @@
         </service>
 
         <activity android:name=".activities.LoginActivity" />
-        <activity android:name=".activities.RegisterActivity"></activity>
     </application>
 
 </manifest>

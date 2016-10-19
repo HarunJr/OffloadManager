@@ -133,7 +133,6 @@ public class OffloadContract {
         public static final String COLUMN_DESCRIPTION = "description";
         public static final String COLUMN_DATE_TIME = "transaction_date_time";
 
-
         public static Uri buildTransactionUri(long id)
         {
             return ContentUris.withAppendedId(CONTENT_URI, id);

@@ -12,6 +12,7 @@ import android.widget.CalendarView;
 import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.DateHelper;
 import com.harun.offloadmanager.R;
+import com.harun.offloadmanager.UserLocalStore;
 import com.harun.offloadmanager.fragments.DetailsFragment;
 import com.harun.offloadmanager.fragments.VehiclesFragment;
 import com.harun.offloadmanager.fragments.VehiclesHistory;
@@ -24,62 +25,23 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
     CollapsingToolbarLayout collapsingToolbarLayout;
     CalendarView calendarView;
     private boolean mTwoPane;
+    UserLocalStore userLocalStore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //TODO: Create *calendarView* or use library https://github.com/GerritHoekstra/CompactCalendarViewToolbar
         Constants.toolbar = (Toolbar) findViewById(R.id.main_activity_toolbar);
 
-//        calendarView();
+        userLocalStore = new UserLocalStore(getApplicationContext());
+        //TODO: Create *calendarView* or use library https://github.com/GerritHoekstra/CompactCalendarViewToolbar
 
-        calendarView = (CalendarView) findViewById(R.id.calendar_view);
-        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(CalendarView calendarView, int year, int month, int dayOfMonth) {
-//                Toast.makeText(getApplicationContext(), dayOfMonth, Toast.LENGTH_SHORT).show();
+        checkPane(savedInstanceState);
+        displayCalendarView();
 
-                //TODO: Check how day, time and calendarDay coiniside at midnight
-                long dateTime = System.currentTimeMillis();
-                String day = DateHelper.getFormattedDayString(dateTime);
-                String time = DateHelper.getFormattedTimeString(dateTime);
+    }
 
-                String calendarDay = dayOfMonth+"/"+(month)+"/"+year;
-                String parts[] = calendarDay.split("/");
-
-                 dayOfMonth = Integer.parseInt(parts[0]);
-                 month = Integer.parseInt(parts[1]);
-                 year = Integer.parseInt(parts[2]);
-
-                Calendar calendar = Calendar.getInstance();
-                calendar.set(Calendar.YEAR, year);
-                calendar.set(Calendar.MONTH, month);
-                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-
-                long calMilliTime = calendar.getTimeInMillis();
-                String calDayDate = DateHelper.getFormattedDayString(calMilliTime);
-                long dayInMilli = (1000*60*60*24);
-                long dayNext = (calMilliTime+ dayInMilli);
-
-                Log.w(LOG_TAG, "onSelectedDayChange "+ calDayDate+"-------------"+day+"-"+time );
-                Log.w(LOG_TAG, "onSelectedDayChange "+calMilliTime +"---" + dayNext);
-
-                if (!calDayDate.equals(day)){
-                    addVehiclesHistoryFragment(calMilliTime, dayNext);
-                }else{
-                    addVehiclesFragment();
-                }
-
-                Log.w(LOG_TAG, "calendarDay "+ calDayDate);
-
-//                PostToServerTask postToServerTask = new PostToServerTask(getApplicationContext());
-//                postToServerTask.execute(method, calendarDay);
-
-            }
-        });
-
+    private void checkPane(Bundle savedInstanceState){
         if (findViewById(R.id.vehicle_detail_container) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -94,23 +56,88 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
                         .replace(R.id.vehicle_detail_container, new DetailsFragment())
                         .commit();
             }
-        }else {
+
+        } else {
             mTwoPane = false;
-
-            addVehiclesFragment();
+            authenticate();
         }
-
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.w(LOG_TAG, "onStart ");
+
+        if (authenticate()){
+            addVehiclesFragment();
+        }else {
+            startActivity(new Intent(this, LoginActivity.class));
+        }
+    }
+
+
+    private boolean authenticate(){
+        Log.w(LOG_TAG, String.valueOf(userLocalStore.getUserLoggedIn()));
+        return userLocalStore.getUserLoggedIn();
+    }
+
+    private void displayCalendarView() {
+        calendarView = (CalendarView) findViewById(R.id.calendar_view);
+        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(CalendarView calendarView, int year, int month, int dayOfMonth) {
+//                Toast.makeText(getApplicationContext(), dayOfMonth, Toast.LENGTH_SHORT).show();
+
+                //TODO: Check how day, time and calendarDay coiniside at midnight
+                long dateTime = System.currentTimeMillis();
+                String day = DateHelper.getFormattedDayString(dateTime);
+                String time = DateHelper.getFormattedTimeString(dateTime);
+
+                String calendarDay = dayOfMonth + "/" + (month) + "/" + year;
+                String parts[] = calendarDay.split("/");
+
+                dayOfMonth = Integer.parseInt(parts[0]);
+                month = Integer.parseInt(parts[1]);
+                year = Integer.parseInt(parts[2]);
+
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.YEAR, year);
+                calendar.set(Calendar.MONTH, month);
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                long calMilliTime = calendar.getTimeInMillis();
+                String calDayDate = DateHelper.getFormattedDayString(calMilliTime);
+                long dayInMilli = (1000 * 60 * 60 * 24);
+                long dayNext = (calMilliTime + dayInMilli);
+
+                Log.w(LOG_TAG, "onSelectedDayChange " + calDayDate + "-------------" + day + "-" + time);
+                Log.w(LOG_TAG, "onSelectedDayChange " + calMilliTime + "---" + dayNext);
+
+                if (!calDayDate.equals(day)) {
+                    addVehiclesHistoryFragment(calMilliTime, dayNext);
+                } else {
+                    addVehiclesFragment();
+                }
+
+                Log.w(LOG_TAG, "calendarDay " + calDayDate);
+
+//                PostToServerTask postToServerTask = new PostToServerTask(getApplicationContext());
+//                postToServerTask.execute(method, calendarDay);
+
+            }
+        });
+    }
+
     private void addVehiclesHistoryFragment(long calMilliTime, long dayNext) {
         //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
-        Log.w(LOG_TAG, "addVehiclesHistoryFragment "+ calMilliTime +": " +dayNext);
+        Log.w(LOG_TAG, "addVehiclesHistoryFragment " + calMilliTime + ": " + dayNext);
         Bundle args = new Bundle();
         args.putLong(Constants.CALENDAR_DAY, calMilliTime);
         args.putLong(Constants.NEXT_DAY, dayNext);
 
         VehiclesHistory vehiclesHistory = new VehiclesHistory();
         vehiclesHistory.setArguments(args);
-        Log.w(LOG_TAG, "addVehiclesHistoryFragment "+ args );
+        Log.w(LOG_TAG, "addVehiclesHistoryFragment " + args);
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_vehicles, vehiclesHistory)
@@ -122,9 +149,9 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         getSupportActionBar().setTitle(R.string.vehicles_history_title_label);
     }
 
-    private void addVehiclesFragment() {
+    public void addVehiclesFragment() {
         //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
-        Log.w(LOG_TAG, "addVehiclesFragment " );
+        Log.w(LOG_TAG, "addVehiclesFragment ");
 
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment_vehicles, new VehiclesFragment())
@@ -136,34 +163,10 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         getSupportActionBar().setTitle(R.string.vehicles_title_label);
     }
 
-//    public void calendarView(){
-//
-//        CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-//        collapsingToolbarLayout.setTitle("Vehicles");
-//
-//        HashSet<Date> events = new HashSet<>();
-//        events.add(new Date());
-//
-//        CalendarView cv = ((CalendarView)findViewById(R.id.calendar_view));
-//        cv.updateCalendar(events);
-//
-//        // assign event handler
-//        cv.setEventHandler(new CalendarView.EventHandler()
-//        {
-//            @Override
-//            public void onDayLongPress(Date date)
-//            {
-//                // show returned day
-//                DateFormat df = SimpleDateFormat.getDateInstance();
-//                Toast.makeText(getApplicationContext(), df.format(date), Toast.LENGTH_SHORT).show();
-//                Log.w(LOG_TAG, "onDayLongPress " + date);
-//            }
-//        });
-//    }
-
     @Override
-    public void onItemSelected( Uri contentUri) {
+    public void onItemSelected(Uri contentUri) {
         Log.w(LOG_TAG, "onItemSelected " + contentUri);
+
         if (mTwoPane) {
             Bundle args = new Bundle();
             args.putParcelable(DetailsFragment.DETAIL_URI, getIntent().getData());
@@ -174,10 +177,9 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
                     .replace(R.id.vehicle_detail_container, detailsFragment)
                     .commit();
 
-        }else {
+        } else {
             startActivity(new Intent(getApplicationContext(), DetailsActivity.class)
                     .setData(contentUri));
-
         }
     }
 }

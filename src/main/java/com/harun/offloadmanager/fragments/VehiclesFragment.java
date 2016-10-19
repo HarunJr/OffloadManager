@@ -150,12 +150,15 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
                 Log.w(LOG_TAG, "action_add_vehicle");
                 addVehicle();
                 return true;
+
             case R.id.action_refresh:
                 updateView();
                 return true;
+
             case R.id.action_logout:
                 startActivity(new Intent(getActivity(), LoginActivity.class));
                 return true;
+            
             default:
                 return super.onOptionsItemSelected(item);
         }

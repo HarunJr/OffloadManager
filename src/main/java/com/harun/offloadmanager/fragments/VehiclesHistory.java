@@ -1,6 +1,8 @@
 package com.harun.offloadmanager.fragments;
 
 import android.database.Cursor;
+import android.database.CursorJoiner;
+import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -27,8 +29,12 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
     public static final String LOG_TAG = VehiclesHistory.class.getSimpleName();
 
     private OnFragmentInteractionListener mListener;
+
     private static final int COLLECTION_LOADER = 0;
     private static final int EXPENSE_LOADER = 1;
+
+    private Cursor cursor1 = null;
+    private Cursor cursor2 = null;
 
     private static final String SELECTED_KEY = "selected_position";
 
@@ -124,9 +130,8 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         (calMilliTime, dayNext, COLLECTION_LOADER);
 
                 String[] projection = {OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION,
-                        OffloadContract.TransactionEntry.COLUMN_AMOUNT + " AS EXPENSE ",
                         OffloadContract.TransactionEntry.COLUMN_AMOUNT + " AS COLLECTION ",
-                                 OffloadContract.TransactionEntry.COLUMN_TYPE};
+                        OffloadContract.TransactionEntry.COLUMN_TYPE};
 
                 Log.w(LOG_TAG, "COLLECTION_LOADER: >>>" + COLLECTION_LOADER + "," + collectionForVehicleWithDateUri);
                 return new CursorLoader(
@@ -143,9 +148,8 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         (calMilliTime, dayNext, EXPENSE_LOADER);
 
                 String[] projection = {OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION,
-                        OffloadContract.TransactionEntry.COLUMN_AMOUNT + " AS COLLECTION ",
                         OffloadContract.TransactionEntry.COLUMN_AMOUNT + " AS EXPENSE ",
-                                 OffloadContract.TransactionEntry.COLUMN_TYPE};
+                        OffloadContract.TransactionEntry.COLUMN_TYPE};
 
                 Log.w(LOG_TAG, "EXPENSE_LOADER: >>>" + EXPENSE_LOADER + "," + expenseForVehicleWithDateUri);
                 return new CursorLoader(
@@ -167,34 +171,26 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
 
         switch (loader.getId()) {
             case COLLECTION_LOADER: {
-                if (mVehiclesHistoryAdapter != null && data != null) {
-                    mVehiclesHistoryAdapter.swapCursor(data);
-                    mVehiclesHistoryAdapter.notifyDataSetChanged();
-                    Log.w(LOG_TAG, "COLLECTION_LOADER: " + data.getCount() + ", " + loader.getId());
-                }
+
+                cursor1 = data;
+                joinCursors();
+
                 break;
             }
             case EXPENSE_LOADER: {
-                if (mVehiclesHistoryAdapter != null && data != null) {
-                    mVehiclesHistoryAdapter.swapCursor(data);
-                    mVehiclesHistoryAdapter.notifyDataSetChanged();
-                    Log.w(LOG_TAG, "EXPENSE_LOADER: " + data.getCount() + ", " + loader.getId());
-                }
+
+                cursor2 = data;
+                joinCursors();
+
                 break;
             }
         }
-
-//        if (mVehiclesHistoryAdapter != null && data != null){
-//            mVehiclesHistoryAdapter.swapCursor(data);
-//            mVehiclesHistoryAdapter.notifyDataSetChanged();
-//        }
 
         if (mPosition != RecyclerView.NO_POSITION) {
             // If we don't need to restart the loader, and there's a desired position to restore
             // to, do so now.
             mRecyclerView.smoothScrollToPosition(mPosition);
         }
-
     }
 
     @Override
@@ -202,29 +198,65 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
         mVehiclesHistoryAdapter.swapCursor(null);
     }
 
-//    // TODO: Rename method, update argument and hook method into UI event
-//    public void onButtonPressed(Uri uri) {
-//        if (mListener != null) {
-//            mListener.onFragmentInteraction(uri);
-//        }
-//    }
+    private void joinCursors() {
+        if (cursor1 != null && cursor2 != null) {
+            // use CursorJoiner here
 
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
-//    }
+            CursorJoiner joiner = new CursorJoiner(cursor1, new String[]{OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION}, cursor2, new String[]{OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION});
 
-//    @Override
-//    public void onDetach() {
-//        super.onDetach();
-//        mListener = null;
-//    }
+            String[] projectionHistory = {
+                    "VEHICLE_REG",
+                    "EXPENSE",
+                    "COLLECTION"
+            };
+
+            MatrixCursor matrixCursor = new MatrixCursor(projectionHistory);
+            double collection = 0;
+            double expense = 0;
+            String vehicleReg = "";
+
+            for (CursorJoiner.Result joinerResult : joiner) {
+
+                switch (joinerResult) {
+                    case LEFT:
+                        // handle case where a row in cursorA is unique
+                        // double collection = cursor1.getDouble(cursor1.getColumnIndex("COLLECTION"));
+                        vehicleReg = cursor1.getString(cursor1.getColumnIndex(OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION));
+
+                        collection = cursor1.getDouble(cursor1.getColumnIndex("COLLECTION"));
+                        matrixCursor.addRow(new String[]{vehicleReg, Double.toString(0.00), Double.toString(collection)});
+                        Log.w(LOG_TAG, "LEFT: " + vehicleReg +"--"+collection);
+                        break;
+                    case RIGHT:
+                        // handle case where a row in cursorB is unique
+                        // double expense = cursor1.getDouble(cursor1.getColumnIndex("EXPENSE"));
+                        vehicleReg = cursor2.getString(cursor2.getColumnIndex(OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION));
+
+                        expense = cursor2.getDouble(cursor2.getColumnIndex("EXPENSE"));
+                        Log.w(LOG_TAG, "RIGHT: " + vehicleReg +"--"+expense);
+                        matrixCursor.addRow(new String[]{vehicleReg, Double.toString(expense), Double.toString(0.00)});
+                        break;
+                    case BOTH:
+                        // handle case where a row with the same key is in both cursors
+
+                        vehicleReg = cursor1.getString(cursor1.getColumnIndex(OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION));
+
+                        collection = cursor1.getDouble(cursor1.getColumnIndex("COLLECTION"));
+                        expense = cursor2.getDouble(cursor2.getColumnIndex("EXPENSE"));
+
+                        Log.w(LOG_TAG, "BOTH: " + vehicleReg +" -- "+collection+"--"+expense);
+                        matrixCursor.addRow(new String[]{vehicleReg, Double.toString(expense), Double.toString(collection)});
+                        break;
+                }
+            }
+
+            if (mVehiclesHistoryAdapter != null && matrixCursor != null) {
+                mVehiclesHistoryAdapter.swapCursor(matrixCursor);
+                mVehiclesHistoryAdapter.notifyDataSetChanged();
+                Log.w(LOG_TAG, "EXPENSE_LOADER: " + matrixCursor.getCount());
+            }
+        }
+    }
 
     /**
      * This interface must be implemented by activities that contain this

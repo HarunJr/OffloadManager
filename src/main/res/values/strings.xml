@@ -50,5 +50,7 @@
     <string name="signup_link">Don\'t have an account? Sign Up</string>
     <string name="signup_label">Sign Up</string>
     <string name="login_link">Already Registered? Login</string>
+    <string name="hint_name">Full Names</string>
+    <string name="hint_phone_no">(+254) 70000000</string>
 
 </resources>

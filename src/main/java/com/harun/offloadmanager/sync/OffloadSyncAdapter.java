@@ -45,6 +45,8 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+       //TODO: Use Retrofit
+        //TODO: Use Tasks for on demand response and SyncAdapter for periodic/scheduled events e.g whatsapp backup
         Log.d(LOG_TAG, "onPerformSync Called.");
 
         String JSON_STRING;
@@ -210,7 +212,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
         close();
     }
 
-    public void addToVehiclesSQLitedb(String vehicleReg, String regDate, String vehicleCollection, String vehicleExpense, String vehicleLastTransaction) {
+    private void addToVehiclesSQLitedb(String vehicleReg, String regDate, String vehicleCollection, String vehicleExpense, String vehicleLastTransaction) {
 
         open();
         ContentValues vehicleValues = new ContentValues();
