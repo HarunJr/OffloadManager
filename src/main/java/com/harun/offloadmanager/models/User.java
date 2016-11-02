@@ -1,4 +1,4 @@
-package com.harun.offloadmanager;
+package com.harun.offloadmanager.models;
 
 /**
  * Created by HARUN on 10/12/2016.

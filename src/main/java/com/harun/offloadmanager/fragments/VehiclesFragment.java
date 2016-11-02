@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -24,15 +25,18 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.DateHelper;
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.activities.AddVehicleActivity;
 import com.harun.offloadmanager.activities.LoginActivity;
 import com.harun.offloadmanager.adapters.VehiclesAdapter;
+import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.data.OffloadContract;
-import com.harun.offloadmanager.sync.OffloadSyncAdapter;
+import com.harun.offloadmanager.models.User;
+import com.harun.offloadmanager.tasks.ServerRequest;
 
-public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String LOG_TAG = VehiclesFragment.class.getSimpleName();
 
     private OnFragmentInteractionListener mListener;
@@ -47,7 +51,11 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
     public TextView headerVehicleCollectionView;
     public TextView headerVehicleExpenseView;
     public TextView headerVehicleDifferenceView;
+    public CardView headerCardView;
 
+    String listenerTag;
+    double difference;
+    private long dateTime;
     public static final String[] VEHICLE_COLUMN = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the vehicle & transactions tables in the background
@@ -89,8 +97,11 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
+            dateTime = getArguments().getLong(Constants.CURRENT_DAY);
+            Log.w(LOG_TAG, "onCreate " + dateTime);
+        }else {
+            Log.w(LOG_TAG, "Error...NO ARGS " + dateTime);
+
         }
     }
 
@@ -100,10 +111,23 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_vehicles, container, false);
 
+        headerCardView = (CardView) rootView.findViewById(R.id.header_vehicles_cardView);
         headerVehicleDateView = (TextView) rootView.findViewById(R.id.item_vehicles_header_date_text_view);
         headerVehicleCollectionView = (TextView) rootView.findViewById(R.id.item_vehicles_header_collection_text_view);
         headerVehicleExpenseView = (TextView) rootView.findViewById(R.id.item_vehicles_header_expense_text_view);
         headerVehicleDifferenceView = (TextView) rootView.findViewById(R.id.item_vehicles_header_profit_text_view);
+
+        headerCardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String officeKey = "Office";
+                int dailyOfficeCollection = (int) difference;
+
+                Uri summaryUri = OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(officeKey, dailyOfficeCollection, 0);//difference, office expenses.
+                ((OnFragmentInteractionListener) getActivity()).onFragmentInteraction(summaryUri, dateTime);
+                Log.w(LOG_TAG, "onCreateView " + summaryUri);
+            }
+        });
 
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
@@ -116,8 +140,9 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
         mVehiclesAdapter = new VehiclesAdapter(getActivity(), new VehiclesAdapter.VehiclesAdapterOnClickHandler() {
             @Override
-            public void onClick( Uri uri, VehiclesAdapter.ViewHolder vh) {
-                ((OnFragmentInteractionListener) getActivity()).onItemSelected(uri);
+            public void onClick(Uri uri, VehiclesAdapter.ViewHolder vh) {
+                listenerTag = "listItemSelected";
+                ((OnFragmentInteractionListener) getActivity()).onFragmentInteraction(uri, dateTime);
 
                 Log.w(LOG_TAG, "onCreateView " + uri);
                 mPosition = vh.getAdapterPosition();
@@ -132,8 +157,20 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        getLoaderManager().initLoader(VEHICLE_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(VEHICLE_LOADER, null, this);
+        Log.w(LOG_TAG, "onActivityCreated");
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.w(LOG_TAG, "onStart");
+        if (isNetworkAvailable()) {
+            updateView();
+        } else {
+            Toast.makeText(getActivity(), R.string.no_internet_message, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -145,7 +182,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_add_vehicle:
                 Log.w(LOG_TAG, "action_add_vehicle");
                 addVehicle();
@@ -156,53 +193,57 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
                 return true;
 
             case R.id.action_logout:
-                startActivity(new Intent(getActivity(), LoginActivity.class));
+                LocalStore userLocalStore = new LocalStore(getActivity());
+                userLocalStore.clearUserData();
+                userLocalStore.setUserLoggedIn(false);
+
+                startActivity(new Intent(getActivity(), LoginActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                 return true;
-            
+
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (isNetworkAvailable()){
-            updateView();
-        }else {
-            Toast.makeText(getActivity(), R.string.no_internet_message, Toast.LENGTH_LONG).show();
-        }
-    }
 
-    public boolean isNetworkAvailable(){
+    public boolean isNetworkAvailable() {
         ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
-    private void addVehicle(){
+    private void addVehicle() {
         startActivity(new Intent(getActivity(), AddVehicleActivity.class));
     }
 
-    private void updateView(){
-//        FetchVehicleTask vehicleTask = new FetchVehicleTask(getContext());
-//        vehicleTask.execute();
-        OffloadSyncAdapter.syncImmediately(getContext());
+    private void updateView() {
+        Log.w(LOG_TAG, "updateView");
+        User user = new LocalStore(getContext()).getLoggedInUser();
+
+        String registerMethod = "fetch_all_data";
+        new ServerRequest(getActivity()).execute(registerMethod, user.phoneNo);
+
+//        new FetchTransactionTask(getActivity()).execute();
+
+//        OffloadSyncAdapter.syncImmediately(getContext());
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.w(LOG_TAG, "onCreateLoader: " + id +" "+args);
+        Log.w(LOG_TAG, "onCreateLoader: " + id + " " + args);
         String sortOrder = OffloadContract.VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME + " DESC";
 
-            return new CursorLoader(
-                    getActivity(),
-                    OffloadContract.VehicleEntry.CONTENT_URI,
-                    VEHICLE_COLUMN,
-                    null,
-                    null,
-                    sortOrder
-            );
+        return new CursorLoader(
+                getActivity(),
+                OffloadContract.VehicleEntry.CONTENT_URI,
+                VEHICLE_COLUMN,
+                null,
+                null,
+                sortOrder
+        );
     }
 
     @Override
@@ -211,7 +252,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
         if (data != null && data.moveToFirst()) {
 
-            long dateTime = System.currentTimeMillis();
+            dateTime = System.currentTimeMillis();
             double dailyVehicleCollection;
             double dailyVehicleExpense;
 
@@ -225,12 +266,12 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
                 collectionTotal += dailyVehicleCollection;
                 expenseTotal += dailyVehicleExpense;
 
-                Log.w(LOG_TAG, "dailyTotalCollection: " + collectionTotal+"--"+ expenseTotal);
+                Log.w(LOG_TAG, "dailyTotalCollection: " + collectionTotal + "--" + expenseTotal);
             }
             while (data.moveToNext());
 
             Log.w(LOG_TAG, "total: " + collectionTotal);
-            double difference = collectionTotal - expenseTotal;
+            difference = collectionTotal - expenseTotal;
 
             String day = DateHelper.getFormattedDayString(dateTime);
             String formattedCollection = DateHelper.getFormattedCurrency(getContext(), collectionTotal);
@@ -283,8 +324,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
     public interface OnFragmentInteractionListener {
 //        // TODO: Update argument type and name
-//        void onItemSelected(Uri uri);
-
-        void onItemSelected( Uri uri);
+//        void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Uri uri, long dateTime);
     }
 }

@@ -19,9 +19,9 @@ public class DetailsActivity extends AppCompatActivity{
     public static final String LOG_TAG = DetailsActivity.class.getSimpleName();
     //From mainActivity
     Uri mUri;
-    String vehicleReg;
+    String titleKey;
     Bundle args = new Bundle();
-
+    long dateTime;
     FloatingActionButton fab;
 
     @Override
@@ -30,54 +30,47 @@ public class DetailsActivity extends AppCompatActivity{
         setContentView(R.layout.activity_details);
         Log.w(LOG_TAG, "onCreate " + getIntent().getData());
 
-        getDataFromMainActivity();
-
-        setToolBar();
-
-        addDetailsFragment(mUri);
-
+        Constants.toolbar = (Toolbar) findViewById(R.id.detail_activity_toolbar);
         fab = (FloatingActionButton) findViewById(R.id.fabButton);
 
-        fab.setOnClickListener(new View.OnClickListener() {
-                                   @Override
-                                   public void onClick(View v) {
-
-                                       Log.w(LOG_TAG, " OnFabPressed " + vehicleReg);
-                                       startTransactionsActivity(vehicleReg);
-                                   }
-                               }
-        );
+        getDataFromMainActivity();
     }
 
     private void getDataFromMainActivity() {
         //get vehicle value from uri path
-//        String[] path = getIntent().getData().getPath().split("/");
-//        vehicleReg = path[path.length - 3];
 
-        args.putParcelable(DetailsFragment.DETAIL_URI, getIntent().getData());
+        Intent intent = getIntent();
+        dateTime = intent.getLongExtra(Constants.CURRENT_DAY, 0);
 
-        Log.w(LOG_TAG, "getDataFromMainActivity "+ args);
+        args.putParcelable(Constants.DETAIL_URI, intent.getData());
+        args.putLong(Constants.CURRENT_DAY, dateTime);
+
+        Log.w(LOG_TAG, "getDataFromMainActivity "+ args +"---"+ dateTime);
+
+        fragmentToAdd();
+
     }
 
-    private void setToolBar() {
+    private void fragmentToAdd(){
+
         if (args != null) {
-            mUri = args.getParcelable(DetailsFragment.DETAIL_URI);
-            vehicleReg = OffloadContract.VehicleEntry.getVehicleRegistrationFromUri(mUri);
+            mUri = args.getParcelable(Constants.DETAIL_URI);
+            titleKey = OffloadContract.VehicleEntry.getVehicleRegistrationFromUri(mUri);
+
+            addDetailsFragment(mUri);
+
+//            if (listenerTag.equals("listItemSelected")){
+//                addDetailsFragment(mUri);
+//            }else {
+//                addSummaryFragment(mUri);
+//            }
         }
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_activity_toolbar);
-        setSupportActionBar(toolbar);
-
-        assert getSupportActionBar() != null;
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(vehicleReg);
-
-        //TODO: work on UP button next to title
     }
 
     private void addDetailsFragment(Uri uri) {
         //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
         Log.w(LOG_TAG, "addDetailsFragment " + uri);
+
 
         DetailsFragment detailFragment = new DetailsFragment();
         detailFragment.setArguments(args);
@@ -85,12 +78,55 @@ public class DetailsActivity extends AppCompatActivity{
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.vehicle_detail_container, detailFragment)
                 .commit();
+
+        setSupportActionBar(Constants.toolbar);
+
+        assert getSupportActionBar() != null;
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(titleKey);
+
+        fab.setOnClickListener(new View.OnClickListener() {
+                                   @Override
+                                   public void onClick(View v) {
+
+                                       Log.w(LOG_TAG, " OnFabPressed " + titleKey);
+                                       startTransactionsActivity(titleKey);
+                                   }
+                               }
+        );
     }
 
+//    private void addSummaryFragment(Uri uri) {
+//        //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
+//        Log.w(LOG_TAG, "addSummaryFragment " + uri);
+//
+//        SummaryFragment summaryFragment = new SummaryFragment();
+//        summaryFragment.setArguments(args);
+//
+//        getSupportFragmentManager().beginTransaction()
+//                .add(R.id.vehicle_detail_container, summaryFragment)
+//                .commit();
+//
+//        setSupportActionBar(Constants.toolbar);
+//
+//        assert getSupportActionBar() != null;
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setTitle(titleKey);
+//
+//        fab.setOnClickListener(new View.OnClickListener() {
+//                                   @Override
+//                                   public void onClick(View v) {
+//
+//                                       Log.w(LOG_TAG, " OnFabPressed " + titleKey);
+//                                       startTransactionsActivity(titleKey);
+//                                   }
+//                               }
+//        );
+//    }
 
-    private void startTransactionsActivity(String vehicleReg) {
+    private void startTransactionsActivity(String title) {
         startActivity(new Intent(getApplicationContext(), TransactionsActivity.class)
-                .putExtra(TransactionsActivity.VEHICLE_REG, vehicleReg));
+                .putExtra(TransactionsActivity.VEHICLE_REG, title));
     }
 
     private void replaceWithTransactionFragment(String vehicleReg) {
@@ -106,9 +142,9 @@ public class DetailsActivity extends AppCompatActivity{
                 .commit();
     }
 
-    //    private void replaceWithDetailFragment(int vehicleId, String vehicleReg) {
+    //    private void replaceWithDetailFragment(int vehicleId, String titleKey) {
 //        args.putInt(Constants.VEHICLE_ID, vehicleId);
-//        args.putString(Constants.VEHICLE_REG, vehicleReg);
+//        args.putString(Constants.VEHICLE_REG, titleKey);
 //
 //        Log.w(LOG_TAG, "replaceWithDetailFragment " + vehicleId);
 //        DetailFragment detailFragment = new DetailFragment();
@@ -118,9 +154,9 @@ public class DetailsActivity extends AppCompatActivity{
 //        fragmentTransaction.commit();
 //    }
 //
-//    private void replaceWithEditVehicle(int vehicleId, String vehicleReg) {
+//    private void replaceWithEditVehicle(int vehicleId, String titleKey) {
 //        args.putInt(Constants.VEHICLE_ID, vehicleId);
-//        args.putString(Constants.VEHICLE_REG, vehicleReg);
+//        args.putString(Constants.VEHICLE_REG, titleKey);
 //
 //        Log.w(LOG_TAG, "replaceWithEditVehicle " + vehicleId);
 //        EditVehicle editVehicle = new EditVehicle();
@@ -137,8 +173,8 @@ public class DetailsActivity extends AppCompatActivity{
 //    }
 //
 //    @Override
-//    public void onEditVehicle(int vehicleId, String vehicleReg) {
-//        replaceWithEditVehicle(vehicleId, vehicleReg);
+//    public void onEditVehicle(int vehicleId, String titleKey) {
+//        replaceWithEditVehicle(vehicleId, titleKey);
 //        Log.w(LOG_TAG, "onEditVehicle: " + vehicleId + ", " + vehicleId);
 //    }
 }

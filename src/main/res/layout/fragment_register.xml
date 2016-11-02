@@ -39,7 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/hint_name"
-                android:inputType="textEmailAddress" />
+                android:inputType="text" />
 
         </android.support.design.widget.TextInputLayout>
 
@@ -78,11 +78,12 @@
             android:layout_marginTop="4dp">
 
             <EditText
-                android:id="@+id/pass_code_register"
+                android:id="@+id/pin_register"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/hint_password"
-                android:inputType="textPassword" />
+                android:maxLength="4"
+                android:inputType="numberPassword" />
 
         </android.support.design.widget.TextInputLayout>
 

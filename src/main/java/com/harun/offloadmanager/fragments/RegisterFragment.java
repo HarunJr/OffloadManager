@@ -1,33 +1,39 @@
 package com.harun.offloadmanager.fragments;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.User;
-import com.harun.offloadmanager.UserLocalStore;
+import com.harun.offloadmanager.models.User;
+import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.activities.LoginActivity;
 import com.harun.offloadmanager.tasks.ServerRequest;
 
 
 public class RegisterFragment extends Fragment {
     public static final String LOG_TAG = RegisterFragment.class.getSimpleName();
+    TextInputLayout passwordWrapper;
+    TextInputLayout emailWrapper;
+
     EditText etName, etPhoneNo, etEmail, etPassCode;
     Button btnSignUp;
     TextView tvLoginLink;
 
-    UserLocalStore localStore;
+    LocalStore localStore;
 
     AlertDialog.Builder builder;
 
@@ -61,17 +67,25 @@ public class RegisterFragment extends Fragment {
         // Inflate the layout for this fragment
         final View rootView = inflater.inflate(R.layout.fragment_register, container, false);
 
+        emailWrapper = (TextInputLayout) rootView.findViewById(R.id.emailWrapper);
+        passwordWrapper = (TextInputLayout) rootView.findViewById(R.id.passwordWrapper);
+
         etName = (EditText) rootView.findViewById(R.id.name_register);
         etPhoneNo = (EditText) rootView.findViewById(R.id.phone_register);
         etEmail = (EditText) rootView.findViewById(R.id.email_register);
-        etPassCode = (EditText) rootView.findViewById(R.id.pass_code_register);
+        etPassCode = (EditText) rootView.findViewById(R.id.pin_register);
 
         btnSignUp = (Button) rootView.findViewById(R.id.button_register);
         tvLoginLink = (TextView) rootView.findViewById(R.id.login_link);
 
+        etName.requestFocus();
+        showSoftKeyboard(etName);
+
         btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                hideSoftKeyboard(view);
 
                 Log.w(LOG_TAG, "button_register");
                 String name = etName.getText().toString();
@@ -106,16 +120,39 @@ public class RegisterFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Log.w(LOG_TAG, "login_link");
-                startActivity(new Intent(getActivity(), LoginActivity.class));
+                startActivity(new Intent(getActivity(), LoginActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
 
             }
         });
         return rootView;
     }
 
+    public void showSoftKeyboard(View view) {
+        if (etName.requestFocus()) {
+            InputMethodManager imm = (InputMethodManager)
+                    getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(etName, 0);
+        }
+    }
+
+    public void hideSoftKeyboard(View view) {
+        view = getActivity().getCurrentFocus();
+
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)
+                    getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(0, InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+
+
     private void registerUser(User user) {
         String registerMethod = "register_user";
         new ServerRequest(getActivity()).execute(registerMethod, user.name, user.phoneNo, user.email, user.pin);
+
     }
 
     public interface OnFragmentInteractionListener {

@@ -15,8 +15,12 @@ public class Constants {
     public static final String DAILY_TOTAL_EXPENSE = "vehicleExpense";
     public static final String MIN_DATE = "minDate";
 
+    public static final String CURRENT_DAY ="currentDay" ;
     public static final String CALENDAR_DAY ="calendarDay" ;
     public static final String NEXT_DAY ="nextDay" ;
+
+    public static final String LISTENER_TAG = "listItemSelected";
+    public static final String DETAIL_URI = "URI";
     /**
      The caller references the constants using <tt>Consts.EMPTY_STRING</tt>,
      and so on. Thus, the caller should be prevented from constructing objects of

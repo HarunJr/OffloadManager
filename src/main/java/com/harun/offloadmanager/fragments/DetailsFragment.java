@@ -16,20 +16,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.DateHelper;
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.adapters.DetailsAdapter;
 import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.helper.DividerItemDecoration;
-import com.harun.offloadmanager.tasks.FetchTransactionTask;
 
 public class DetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String LOG_TAG = DetailsFragment.class.getSimpleName();
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    public static final String DETAIL_URI = "URI";
 
     Uri mUri;
-    String vehicleReg;
+    String transactionKey;
     View rootView;
     private DetailsAdapter mDetailsAdapter;
 
@@ -37,7 +36,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     public TextView headerCollectionView;
     public TextView headerExpenseView;
     public TextView headerDifferenceView;
-
+    long dateTime;
     protected static final String[] TRANSACTION_COLUMNS = {
             OffloadContract.TransactionEntry.TABLE_NAME + "." + OffloadContract.TransactionEntry.COLUMN_TRANSACTION_ID,
             OffloadContract.TransactionEntry.COLUMN_VEHICLE_KEY,
@@ -74,8 +73,10 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
 
         Bundle arguments = getArguments();
         if (arguments != null) {
-            mUri = arguments.getParcelable(DetailsFragment.DETAIL_URI);
-            Log.w(LOG_TAG, "onCreate " + mUri);
+            mUri = arguments.getParcelable(Constants.DETAIL_URI);
+            dateTime = getArguments().getLong(Constants.CURRENT_DAY);
+
+            Log.w(LOG_TAG, "onCreate " +dateTime+" "+ mUri);
         }
     }
 
@@ -118,27 +119,11 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-//        updateTransactions();
-    }
-
-    private void updateTransactions() {
-
-        FetchTransactionTask transactionTask = new FetchTransactionTask(getContext());
-        transactionTask.execute();
-
-        //TODO: Use postToServerTask as an example of how to model the the tasks
-//        PostToServerTask postToServerTask = new PostToServerTask(getContext());
-//        postToServerTask.execute(method, vehicleReg);
-    }
-
-    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        vehicleReg = OffloadContract.VehicleEntry.getVehicleRegistrationFromUri(mUri);
-        Uri transactionForVehicleRegUri = OffloadContract.TransactionEntry.buildVehicleTransactionUri(vehicleReg);
+        transactionKey = OffloadContract.VehicleEntry.getVehicleRegistrationFromUri(mUri);
+        Uri transactionForVehicleRegUri = OffloadContract.TransactionEntry.buildKeyTransactionWithDateUri(transactionKey, dateTime);
         String sortOrder = OffloadContract.TransactionEntry.COLUMN_DATE_TIME + " DESC";
-        Log.w(LOG_TAG, "onCreateLoader: " + vehicleReg + " " + transactionForVehicleRegUri);
+        Log.w(LOG_TAG, "onCreateLoader: " + transactionKey + " " +dateTime+" "+ transactionForVehicleRegUri);
 
         if (null != mUri) {
 
@@ -158,9 +143,15 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (data != null && data.moveToFirst()) {
 
-            long dateTime = data.getLong(DetailsFragment.COL_DATE_TIME);
+            double officeExpense = 0.00;
             double dailyTotalCollection = Double.parseDouble(OffloadContract.VehicleEntry.getDailyTotalCollectionFromUri(mUri));
             double dailyTotalExpense = Double.parseDouble(OffloadContract.VehicleEntry.getDailyTotalExpenseFromUri(mUri));
+
+            if (transactionKey.equals("Office")){
+                do {
+                    dailyTotalExpense += data.getInt(DetailsFragment.COL_AMOUNT);
+                }while (data.moveToNext());
+            }
             double difference = dailyTotalCollection - dailyTotalExpense;
 
             String day = DateHelper.getFormattedDayString(dateTime);
@@ -174,7 +165,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             headerDifferenceView.setText(formattedDifference);
 
             mDetailsAdapter.swapCursor(data);
-            Log.w(LOG_TAG, "onLoadFinished: " + data.getCount()+", "+ dailyTotalCollection);
+            Log.w(LOG_TAG, "onLoadFinished: " + data.getCount()+", "+ dailyTotalCollection+", "+ officeExpense);
         }
     }
 
@@ -210,6 +201,6 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
 
 //    public interface OnFabPressedListener {
 //        // TODO: Update argument type and name
-//        void onFabPressed(String vehicleReg);
+//        void onFabPressed(String transactionKey);
 //    }
 }

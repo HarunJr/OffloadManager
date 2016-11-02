@@ -69,7 +69,7 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
             String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
             int dailyTotalCollection = mCursor.getInt(VehiclesFragment.COL_VEHICLE_COLLECTION);
             int dailyTotalExpense = mCursor.getInt(VehiclesFragment.COL_VEHICLE_EXPENSE);
-            mClickHandler.onClick(OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactions(vehicleReg, dailyTotalCollection, dailyTotalExpense), this);
+            mClickHandler.onClick(OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(vehicleReg, dailyTotalCollection, dailyTotalExpense), this);
         }
     }
 
@@ -119,10 +119,6 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
         if (null == mCursor) return 0;
         Log.w(LOG_TAG, "swapCursor: "+mCursor.getCount());
         return mCursor.getCount();
-    }
-
-    public void setUseSummaryLayout(boolean useTodayLayout) {
-        mUseSummaryLayout = useTodayLayout;
     }
 
     @Override

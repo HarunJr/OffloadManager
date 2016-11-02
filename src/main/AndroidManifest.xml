@@ -58,6 +58,10 @@
                 android:value=".activities.MainActivity" />
         </activity>
 
+        <activity android:name=".activities.LoginActivity"
+            android:launchMode="singleTop"/>
+
+
         <!-- SyncAdapter's dummy authentication service -->
         <service android:name=".sync.OffloadAuthenticatorService">
             <intent-filter>
@@ -82,7 +86,6 @@
                 android:resource="@xml/syncadapter" />
         </service>
 
-        <activity android:name=".activities.LoginActivity" />
     </application>
 
 </manifest>

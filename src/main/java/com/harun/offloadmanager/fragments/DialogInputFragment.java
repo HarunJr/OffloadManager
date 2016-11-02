@@ -30,7 +30,7 @@ public class DialogInputFragment extends DialogFragment {
 
     private static Context mContext;
 
-    private static final String VEHICLE_REG = "vehicleReg";
+    private static final String VEHICLE_REG = "transactionKey";
     private static final String EXPENSE = "expense";
     private static final String TYPE = "type";
 

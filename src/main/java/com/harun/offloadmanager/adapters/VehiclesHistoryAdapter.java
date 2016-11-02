@@ -57,48 +57,15 @@ public class VehiclesHistoryAdapter extends RecyclerView.Adapter<VehiclesHistory
         double expense;
         double amount;
 
-//        ArrayList<VehicleModel> vehicleHistory = new ArrayList<>();
-//
-//        while (mCursor.moveToNext()){
-//            VehicleModel vehicleModel = new VehicleModel();
-//
-//            TransactionsModel transactionsModel = new TransactionsModel();
-//
-//            vehicleModel.setVehicleRegistration(vehicleReg);
-//            transactionsModel.setType(type);
-//
-//            vehicleHistory.add(vehicleModel);
-//            vehicleHistory.clear();
-//            String[] nonDupList = new HashSet<String>(Arrays.asList(vehicleModel.getVehicleRegistration())).toArray(new String[0]);
-////            vehicleHistory.addAll(nonDupList);
-//
-//            Log.w(LOG_TAG, "vehicleHistory:"+ nonDupList);
-//        }
-
-//        VehicleModel vehicleModel= new VehicleModel();
-//        ArrayList<VehicleModel> vehicleHistory = new ArrayList<>();
-//
-//            vehicleModel = new VehicleModel();
-//            vehicleModel.setVehicleRegistration(vehicleReg);
-//            vehicleHistory.add(vehicleModel);
-//
-//            Set<VehicleModel> nonDup = new HashSet<>();
-//            nonDup.addAll(vehicleHistory);
-//            vehicleHistory.clear();
-//            vehicleHistory.addAll(nonDup);
-
  //       Log.w(LOG_TAG, "vehicleHistory: nonDupList:" + vehicleModel.getVehicleRegistration());
 
         expense = mCursor.getDouble(mCursor.getColumnIndex("EXPENSE"));
-        formattedExpense = Utilities.getFormattedCurrencyExpense(mContext, expense);
-
         amount = mCursor.getDouble(mCursor.getColumnIndex("COLLECTION"));
+
+        formattedExpense = Utilities.getFormattedCurrencyExpense(mContext, expense);
         formattedAmount = Utilities.getFormattedCurrency(mContext, amount);
 
-//        offloadSyncAdapter.addToVehiclesSQLitedb(vehicleReg, null, amount, expense, null);
-
 //        Log.w(LOG_TAG, "onBindViewHolder: "+vehicleReg+", "+amount+" "+expense);
-//        }
 
 //        String dayTime = DateHelper.getFormattedTimeString(dateTimeMillis);
 //        String day = DateHelper.getFormattedDayString(dateTimeMillis);
@@ -117,20 +84,19 @@ public class VehiclesHistoryAdapter extends RecyclerView.Adapter<VehiclesHistory
         return mCursor.getCount();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        public final TextView vehicleView;
-        public final TextView amountView;
-        public final TextView dateView;
-        public final TextView expenseView;
+    class ViewHolder extends RecyclerView.ViewHolder {
+        final TextView vehicleView;
+        final TextView amountView;
+        final TextView dateView;
+        final TextView expenseView;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
 
             vehicleView = (TextView) itemView.findViewById(R.id.item_vehicle_reg);
             amountView = (TextView) itemView.findViewById(R.id.item_vehicle_amount);
             dateView = (TextView) itemView.findViewById(R.id.item_vehicle_date_time);
             expenseView = (TextView) itemView.findViewById(R.id.item_vehicle_expense);
-
         }
     }
 

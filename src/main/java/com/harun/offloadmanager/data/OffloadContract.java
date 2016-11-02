@@ -77,7 +77,7 @@ public class OffloadContract {
         {
             return CONTENT_URI.buildUpon().appendPath(vehicleRegistration).build();
         }
-        public static Uri buildVehicleRegistrationWithTransactions(String vehicleRegistration, int dailyTotalCollection, int dailyTotlaExpense)
+        public static Uri buildVehicleRegistrationWithTransactionsAndDate(String vehicleRegistration, int dailyTotalCollection, int dailyTotlaExpense)
         {
             return CONTENT_URI.buildUpon()
                     .appendPath(vehicleRegistration)
@@ -138,16 +138,7 @@ public class OffloadContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildVehiclesCollectionWithDateAndType(long minDate, long maxDate, int type)
-        {
-            return CONTENT_URI.buildUpon()
-                    .appendPath(Long.toString(minDate))
-                    .appendPath(Long.toString(maxDate))
-                    .appendPath(Long.toString(type))
-                    .build();
-        }
-
-        public static Uri buildVehiclesExpenseWithDateAndType(long minDate, long maxDate, int type)
+        public static Uri buildVehicleWithDateAndType(long minDate, long maxDate, int type)
         {
             return CONTENT_URI.buildUpon()
                     .appendPath(Long.toString(minDate))
@@ -181,102 +172,16 @@ public class OffloadContract {
         /*
             Create URI with vehicle Reg appeded at end of URi
          */
-        public static Uri buildVehicleTransactionUri(String vehicleReg)
-        {
-            return CONTENT_URI.buildUpon().appendPath(vehicleReg).build();
-        }
-
-        // Get the Transaction id from Uri
-        public static String getTransactionIdFromUri(Uri uri)
-        {
-            return uri.getPathSegments().get(1);
-        }
-
-        public static String getVehicleRegFromUri(Uri uri)
-        {
-            return uri.getPathSegments().get(1);
-        }
-
-        public static String getDateFromUri(Uri uri)
-        {
-            return uri.getPathSegments().get(2);
-        }
-
-        public static String getStartDateFromUri(Uri uri)
-        {
-            return uri.getQueryParameter(COLUMN_DATE_TIME);
-        }
-
-    }
-
-    public static final class UserEntry implements BaseColumns {
-
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRANSACTIONS).build();
-
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_TRANSACTIONS;
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_TRANSACTIONS;
-
-        public static final String TABLE_NAME = "users";
-
-        public static final String COLUMN_USERS_ID = "_id";
-        public static final String COLUMN_EMAIL = "vehicle_Key";
-        public static final String COLUMN_PHONE_NO = "amount";
-        public static final String COLUMN_TYPE = "type";
-        public static final String COLUMN_DESCRIPTION = "description";
-        public static final String COLUMN_DATE_TIME = "transaction_date_time";
-
-
-        public static Uri buildTransactionUri(long id)
-        {
-            return ContentUris.withAppendedId(CONTENT_URI, id);
-        }
-
-        public static Uri buildTransactionsWithVehicleAndDate(long minDate, long maxDate, int type)
+        public static Uri buildKeyTransactionWithDateUri(String vehicleReg, long dateTime)
         {
             return CONTENT_URI.buildUpon()
-                    .appendPath(Long.toString(minDate))
-                    .appendPath(Long.toString(maxDate))
-                    .appendPath(Long.toString(type))
+                    .appendPath(vehicleReg)
+                    .appendPath(Long.toString(dateTime))
                     .build();
         }
 
-        public static long getCalDateFromTransactionsUri(Uri uri)
-        {
-            return Long.parseLong(uri.getPathSegments().get(1));
-        }
-
-        public static long getNextDateFromTransactionsUri(Uri uri)
-        {
-            return Long.parseLong(uri.getPathSegments().get(2));
-        }
-
-        public static int getTypeFromUri(Uri uri)
-        {
-            return Integer.parseInt(uri.getPathSegments().get(3));
-        }
-
-
-
-        public static Uri buildTransactionsWithVehicleIdUri(String vehicleReg)
-        {
-            return CONTENT_URI.buildUpon().appendPath(String.valueOf((vehicleReg))).build();
-        }
-
-        /*
-            Create URI with vehicle Reg appeded at end of URi
-         */
-        public static Uri buildVehicleTransactionUri(String vehicleReg)
-        {
-            return CONTENT_URI.buildUpon().appendPath(vehicleReg).build();
-        }
-
         // Get the Transaction id from Uri
         public static String getTransactionIdFromUri(Uri uri)
-        {
-            return uri.getPathSegments().get(1);
-        }
-
-        public static String getVehicleRegFromUri(Uri uri)
         {
             return uri.getPathSegments().get(1);
         }
@@ -285,6 +190,11 @@ public class OffloadContract {
         {
             return uri.getPathSegments().get(2);
         }
+        public static String getVehicleRegFromUri(Uri uri)
+        {
+            return uri.getPathSegments().get(1);
+        }
+
 
         public static String getStartDateFromUri(Uri uri)
         {

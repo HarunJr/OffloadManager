@@ -1,30 +1,34 @@
 package com.harun.offloadmanager.fragments;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.User;
-import com.harun.offloadmanager.UserLocalStore;
+import com.harun.offloadmanager.data.LocalStore;
+import com.harun.offloadmanager.models.User;
 import com.harun.offloadmanager.tasks.ServerRequest;
 
 public class LoginFragment extends Fragment {
     public static final String LOG_TAG = LoginFragment.class.getSimpleName();
+    TextInputLayout passwordWrapper;
     EditText etPhoneNo, etPassword;
     Button btnLogin;
     TextView tvRegister;
 
-    UserLocalStore userLocalStore;
+    LocalStore userLocalStore;
     AlertDialog.Builder builder;
 
     // TODO: Rename and change types of parameters
@@ -62,15 +66,24 @@ public class LoginFragment extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_login, container, false);
 
+        passwordWrapper = (TextInputLayout) rootView.findViewById(R.id.passwordWrapper);
+
+        passwordWrapper.setHint("4 digit PIN");
+
         etPhoneNo = (EditText) rootView.findViewById(R.id.phone_no);
         etPassword = (EditText) rootView.findViewById(R.id.pin);
         btnLogin = (Button) rootView.findViewById(R.id.login_button);
         tvRegister = (TextView) rootView.findViewById(R.id.register_link);
 
+        showSoftKeyboard(etPhoneNo);
+
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.w(LOG_TAG, "login_button");
+
+                hideSoftKeyboard(etPhoneNo);
+
                 String phoneNumber = etPhoneNo.getText().toString();
                 String pass_code = etPassword.getText().toString();
 
@@ -92,7 +105,7 @@ public class LoginFragment extends Fragment {
             }
         });
 
-        userLocalStore = new UserLocalStore(getContext());
+        userLocalStore = new LocalStore(getContext());
 
         return rootView;
     }
@@ -127,6 +140,25 @@ public class LoginFragment extends Fragment {
         new ServerRequest(getActivity()).execute(registerMethod, user.phoneNo, user.pin);
     }
 
+    public void showSoftKeyboard(View view) {
+        if (view.requestFocus()) {
+            InputMethodManager imm = (InputMethodManager)
+                    getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput( view, 0);
+        }
+    }
+
+
+    public void hideSoftKeyboard(View view) {
+        view = getActivity().getCurrentFocus();
+        Log.w(LOG_TAG, "hideSoftKeyboard "+view);
+
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)
+                    getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromInputMethod(view.getWindowToken(), 0);
+        }
+    }
 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name

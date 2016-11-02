@@ -48,7 +48,7 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
 
         assert getSupportActionBar() != null;
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        @SuppressLint("PrivateResource") final Drawable upArrow = ContextCompat.getDrawable(getBaseContext(), R.drawable.abc_ic_ab_back_material);
+        @SuppressLint("PrivateResource") final Drawable upArrow = ContextCompat.getDrawable(getBaseContext(), R.drawable.ic_arrow_back_white_24dp);
         upArrow.setColorFilter(Color.parseColor("#FFFFFF"), PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
 
@@ -108,7 +108,7 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
         serverRequest.execute(method, vehicleReg, stringExpense, stringType, description, dateTime);
         Log.w(LOG_TAG, "create button clicked " + expense + ": " + description);
 
-//        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(vehicleReg));
+//        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(titleKey));
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
     }

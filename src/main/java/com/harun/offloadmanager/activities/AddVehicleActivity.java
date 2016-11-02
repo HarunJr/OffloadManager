@@ -1,6 +1,7 @@
 package com.harun.offloadmanager.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -13,8 +14,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.harun.offloadmanager.Constants;
-import com.harun.offloadmanager.tasks.ServerRequest;
 import com.harun.offloadmanager.R;
+import com.harun.offloadmanager.models.User;
+import com.harun.offloadmanager.data.LocalStore;
+import com.harun.offloadmanager.models.Vehicle;
+import com.harun.offloadmanager.tasks.ServerRequest;
 
 public class AddVehicleActivity extends AppCompatActivity {
     public static final String LOG_TAG = AddVehicleActivity.class.getSimpleName();
@@ -26,6 +30,7 @@ public class AddVehicleActivity extends AppCompatActivity {
     EditText passCapInput;
 
     Button mAddVehicleButton;
+    LocalStore localStore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +43,7 @@ public class AddVehicleActivity extends AppCompatActivity {
         assert getSupportActionBar() != null;
         getSupportActionBar().setTitle(R.string.add_vehicle_title);
 
+        localStore = new LocalStore(this);
         declareEditTextViews();
 
     }
@@ -51,6 +57,7 @@ public class AddVehicleActivity extends AppCompatActivity {
 
         mAddVehicleButton = (Button) findViewById(R.id.create_vehicle_button);
 
+
         mAddVehicleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -61,30 +68,47 @@ public class AddVehicleActivity extends AppCompatActivity {
                     String vehicleRegistration = mRegInput.getText().toString();
                     String vehicleMake = makeInput.getText().toString();
                     String vehicleModel = modelInput.getText().toString();
-                    String YearOfManufacture = YOMInput.getText().toString();
+                    String yearOfManufacture = YOMInput.getText().toString();
                     String passengerCapacity = passCapInput.getText().toString();
                     String dateTime = String.valueOf(System.currentTimeMillis());
 
-                    Log.w(LOG_TAG, "create button clicked "+vehicleRegistration +": "+dateTime);
+                    //user data
+                    User user = localStore.getLoggedInUser();
+                    String user_key = user.phoneNo;
 
-                    ServerRequest postToServerTask = new ServerRequest(getBaseContext());
-                    postToServerTask.execute(
+                    Vehicle vehicle = new Vehicle(
+                            vehicleRegistration, user_key, vehicleMake, vehicleModel, yearOfManufacture, passengerCapacity, dateTime );
+
+                    Log.w(LOG_TAG, "create button clicked "+vehicleRegistration +": "+user_key);
+
+                    registerVehicle(vehicle);
+
+                    ServerRequest serverRequest = new ServerRequest(AddVehicleActivity.this);
+                    serverRequest.execute(
                             method,
                             vehicleRegistration,
+                            user_key,
                             vehicleMake,
                             vehicleModel,
-                            YearOfManufacture,
+                            yearOfManufacture,
                             passengerCapacity,
                             dateTime);
+
+                    startActivity(new Intent(AddVehicleActivity.this, MainActivity.class));
+
                 }else {
                     Toast.makeText(getBaseContext(), R.string.no_internet_message, Toast.LENGTH_LONG).show();
                 }
             }
         });
-
-//        startActivity(new Intent(this, MainActivity.class));
-
     }
+
+    private void registerVehicle(Vehicle vehicle) {
+        String registerMethod = "add_vehicle";
+        new ServerRequest(this).execute(registerMethod,
+                vehicle.registration, vehicle.userKey, vehicle.make, vehicle.model, vehicle.YOM, vehicle.passCap, vehicle.regDate);
+    }
+
 
     public boolean isNetworkAvailable(){
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);

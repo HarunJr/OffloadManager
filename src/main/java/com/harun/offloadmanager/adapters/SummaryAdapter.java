@@ -14,9 +14,10 @@ import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.fragments.DetailsFragment;
 
 /**
- * Created by HARUN on 4/7/2016.
+ * Created by HARUN on 10/25/2016.
  */
-public class DetailsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+public class SummaryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     public static final String LOG_TAG = DetailsAdapter.class.getSimpleName();
 
     private Cursor mCursor;
@@ -25,7 +26,7 @@ public class DetailsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ITEM = 1;
 
-    public DetailsAdapter(Context context, View emptyView) {
+    public SummaryAdapter(Context context, View emptyView) {
         this.mContext = context;
         this.mEmptyView = emptyView;
 
@@ -53,7 +54,7 @@ public class DetailsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         View rootView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_details, parent, false);
         rootView.setFocusable(true);
-        return new TransactionViewHolder(rootView);
+        return new SummaryAdapter.TransactionViewHolder(rootView);
 
     }
 
@@ -77,9 +78,9 @@ public class DetailsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             formattedAmount = DateHelper.getFormattedCurrency(mContext, transactionAmount);
         }
 
-        ((TransactionViewHolder) holder).amountTextView.setText(formattedAmount);
-        ((TransactionViewHolder) holder).dateTextView.setText(dayTime);
-        ((TransactionViewHolder) holder).descriptionTextView.setText(description);
+        ((SummaryAdapter.TransactionViewHolder) holder).amountTextView.setText(formattedAmount);
+        ((SummaryAdapter.TransactionViewHolder) holder).dateTextView.setText(dayTime);
+        ((SummaryAdapter.TransactionViewHolder) holder).descriptionTextView.setText(description);
         Log.w(LOG_TAG, "onBindViewHolder: " + description + ", " + transactionAmount + ", " + type);
     }
 
@@ -111,5 +112,6 @@ public class DetailsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public Cursor getCursor() {
         return mCursor;
     }
+
 
 }

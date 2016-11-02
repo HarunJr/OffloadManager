@@ -11,6 +11,7 @@
         android:id="@+id/header_vehicles_cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
         android:orientation="vertical">
 
         <RelativeLayout
@@ -28,21 +29,12 @@
                 android:text="@string/header_label" />
 
             <TextView
-                android:id="@+id/item_vehicles_header_profit_text_view"
-                style="@style/LargeRobotoTextViewStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/item_vehicles_header_date_text_view"
-                android:layout_centerHorizontal="true"
-                android:padding="8dp" />
-
-            <TextView
                 android:id="@+id/item_vehicles_header_collection_text_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:layout_below="@+id/item_vehicles_header_profit_text_view"
+                android:layout_below="@+id/item_vehicles_header_date_text_view"
                 android:layout_marginLeft="110dp"
                 android:layout_marginStart="110dp"
                 android:padding="8dp"
@@ -54,11 +46,21 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:layout_below="@+id/item_vehicles_header_profit_text_view"
+                android:layout_below="@+id/item_vehicles_header_date_text_view"
                 android:layout_marginEnd="110dp"
                 android:layout_marginRight="110dp"
                 android:padding="8dp"
                 android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/item_vehicles_header_profit_text_view"
+                style="@style/LargeRobotoTextViewStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/item_vehicles_header_collection_text_view"
+                android:layout_centerHorizontal="true"
+                android:padding="8dp" />
+
 
         </RelativeLayout>
 
@@ -67,8 +69,7 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvVehicles"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="16dp" />
+        android:layout_height="wrap_content" />
 
     <!-- empty list -->
     <TextView

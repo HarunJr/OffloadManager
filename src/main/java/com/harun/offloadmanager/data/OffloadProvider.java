@@ -46,7 +46,7 @@ public class OffloadProvider extends ContentProvider {
     static final int TRANSACTION_WITH_ID = 201;
     static final int TRANSACTIONS_WITH_VEHICLE_REGISTRATION = 202;
     static final int TRANSACTION_WITH_START_DATE = 203;
-    static final int TRANSACTION_WITH_VEHICLE_AND_START_DATE = 204;
+    static final int TRANSACTION_WITH_VEHICLE_AND_DATE = 204;
     static final int TRANSACTION_WITH_VEHICLE_AND_START_DATE2 = 205;
 
     private static final SQLiteQueryBuilder sTransactionByVehicleQueryBuilder;
@@ -64,6 +64,21 @@ public class OffloadProvider extends ContentProvider {
                 " = " + VehicleEntry.TABLE_NAME + "." + VehicleEntry.COLUMN_VEHICLE_REGISTRATION);
     }
 
+//    private static final SQLiteQueryBuilder sTransactionByOffloadQueryBuilder;
+//
+//    static {
+//        sTransactionByOffloadQueryBuilder = new SQLiteQueryBuilder();
+//
+//        //This is an inner join which looks like
+//        //transaction INNER JOIN vehicle ON transaction.vehicle_id = vehicle._id
+//        sTransactionByOffloadQueryBuilder.setTables(TransactionEntry.TABLE_NAME
+//                + " INNER JOIN " +
+//                VehicleEntry.TABLE_NAME
+//                + " ON "
+//                + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_VEHICLE_KEY +
+//                " = " + VehicleEntry.TABLE_NAME + "." + VehicleEntry.COLUMN_VEHICLE_REGISTRATION);
+//    }
+
     private static final SQLiteQueryBuilder sVehicleWithTransactionQueryBuilder;
 
     static {
@@ -79,16 +94,6 @@ public class OffloadProvider extends ContentProvider {
                         + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_VEHICLE_KEY +
                         " = " + VehicleEntry.TABLE_NAME + "." + VehicleEntry.COLUMN_VEHICLE_REGISTRATION);
     }
-
-    //location.location_setting = ?
-    private static final String sVehicleWithIdSelection = VehicleEntry.TABLE_NAME
-            + "."
-            + VehicleEntry.COLUMN_VEHICLE_REGISTRATION
-            + " = ? ";
-
-    private static final String sVehicleRegistrationSelection =
-            VehicleEntry.TABLE_NAME +
-                    "." + VehicleEntry.COLUMN_VEHICLE_REGISTRATION + " = ? ";
 
     private static final String sVehicleWithDateSelection =
             VehicleEntry.TABLE_NAME +
@@ -130,9 +135,10 @@ public class OffloadProvider extends ContentProvider {
 
     //location.location_setting = ? AND date >= ?
     private static final String sVehicleRegistrationWithStartDateSelection =
-            VehicleEntry.TABLE_NAME +
-                    "." + VehicleEntry.COLUMN_VEHICLE_REGISTRATION + " = ? AND "
-                    + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_DATE_TIME + " >= ? ";
+            TransactionEntry.TABLE_NAME +
+                    "." + TransactionEntry.COLUMN_VEHICLE_KEY + " = ? AND " +
+                    "strftime('%Y-%m-%d', "+TransactionEntry.TABLE_NAME + "."
+                    + TransactionEntry.COLUMN_DATE_TIME + "/ 1000, 'unixepoch') = strftime('%Y-%m-%d', ?/ 1000, 'unixepoch') ";
 
     //location.location_setting = ? AND date = ?
     private static final String sVehicleRegistrationAndDaySelection =
@@ -159,49 +165,11 @@ public class OffloadProvider extends ContentProvider {
         matcher.addURI(authority, PATH_TRANSACTIONS + "/#", TRANSACTION_WITH_ID);
         matcher.addURI(authority, PATH_TRANSACTIONS + "/*", TRANSACTIONS_WITH_VEHICLE_REGISTRATION);
         matcher.addURI(authority, PATH_TRANSACTIONS + "date/*", TRANSACTION_WITH_START_DATE);
-        matcher.addURI(authority, PATH_TRANSACTIONS + "/#/#/#", TRANSACTION_WITH_VEHICLE_AND_START_DATE);
-        matcher.addURI(authority, PATH_TRANSACTIONS + "/#/#/#", TRANSACTION_WITH_VEHICLE_AND_START_DATE2);
+        matcher.addURI(authority, PATH_TRANSACTIONS + "/#/#/#", TRANSACTION_WITH_VEHICLE_AND_DATE);
+        matcher.addURI(authority, PATH_TRANSACTIONS + "/*/#", TRANSACTION_WITH_VEHICLE_AND_START_DATE2);
 
         return matcher;
 
-    }
-
-    private Cursor getVehicleByRegistration(Uri uri, String[] projection, String sortOrder) {
-        String vehicleRegistration = VehicleEntry.getVehicleRegistrationFromUri(uri);
-
-        String[] selectionArgs;
-        String selection;
-
-        selectionArgs = new String[]{vehicleRegistration};
-        selection = sVehicleRegistrationSelection;
-
-        return sTransactionByVehicleQueryBuilder.query(
-                mOpenHelper.getReadableDatabase(),
-                projection,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                sortOrder
-        );
-    }
-
-    private Cursor getVehicleByDate(Uri uri, String[] projection, String sortOrder) {
-        String id = VehicleEntry.getVehicleRegistrationFromUri(uri);
-        long date = VehicleEntry.getCalDateFromUri(uri);
-
-        String[] selectionArgs = new String[]{id, String.valueOf(date)};
-        String selection = sVehicleWithIdSelection;
-
-        return sTransactionByVehicleQueryBuilder.query(
-                mOpenHelper.getReadableDatabase(),
-                projection,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                sortOrder
-        );
     }
 
     private Cursor getVehicles(String[] projection, String sortOrder) {
@@ -289,7 +257,7 @@ public class OffloadProvider extends ContentProvider {
             Log.d(LOG_TAG, "Type == 0: " + selection +" : "+ type + "\n"+ Arrays.toString(projection));
         }
 
-        Log.d(LOG_TAG, "ALL_VEHICLES_WITH_DATE_CODE: " + selection +" : "+ Arrays.toString(selectionArgs));
+        Log.d(LOG_TAG, "ALL_VEHICLES_WITH_TRANSACTION_AND_DATE_CODE: " + selection +" : "+ Arrays.toString(selectionArgs));
         return sVehicleWithTransactionQueryBuilder.query(
                 mOpenHelper.getReadableDatabase(),
                 projection,
@@ -330,10 +298,10 @@ public class OffloadProvider extends ContentProvider {
         );
     }
 
-    private Cursor getTransactionByVehicleReg(Uri uri, String[] projection, String sortOrder) {
+    private Cursor getTransactionByTransactionKey(Uri uri, String[] projection, String sortOrder) {
         // ToDo : retrieve vehicleId
-        String vehicleId = TransactionEntry.getVehicleRegFromUri(uri);
-        String startDate = TransactionEntry.getStartDateFromUri(uri);
+        String transactionKey = TransactionEntry.getVehicleRegFromUri(uri);
+        String startDate = TransactionEntry.getDateFromUri(uri);
 
         String[] selectionArgs;
         String selection;
@@ -341,24 +309,83 @@ public class OffloadProvider extends ContentProvider {
         // If no date given search without considering date of transaction
         if (startDate == null) {
             selection = sTransactionWithVehicleId;
-            selectionArgs = new String[]{vehicleId};
+            selectionArgs = new String[]{transactionKey};
 
-            Log.w(LOG_TAG, "called; startDate == null where; " + vehicleId);
+            Log.w(LOG_TAG, "called; startDate == null where; " + transactionKey +": "+ Arrays.toString(projection));
         } else {
             selection = sVehicleRegistrationWithStartDateSelection;
-            selectionArgs = new String[]{vehicleId, startDate};
+            selectionArgs = new String[]{transactionKey, startDate};
+            Log.w(LOG_TAG, "called; startDate == "+startDate+" where; " + transactionKey +": "+ Arrays.toString(projection));
         }
 
-        return sTransactionByVehicleQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-                projection,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                sortOrder
-        );
+        if (!transactionKey.equals("Office")){
+            return sTransactionByVehicleQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null,
+                    null,
+                    sortOrder
+            );
 
+        }else {
+
+            return mOpenHelper.getReadableDatabase().query(
+                    TransactionEntry.TABLE_NAME,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null,
+                    null,
+                    sortOrder
+
+            );
+        }
     }
+
+//    private Cursor getTransactionByVehicleAndDate(Uri uri, String[] projection, String sortOrder) {
+//        // ToDo : retrieve vehicleId
+//        String transactionKey = TransactionEntry.getVehicleRegFromUri(uri);
+//        String startDate = TransactionEntry.getStartDateFromUri(uri);
+//
+//        String[] selectionArgs;
+//        String selection;
+//
+//        // If no date given search without considering date of transaction
+//        if (startDate == null) {
+//            selection = sTransactionWithVehicleId;
+//            selectionArgs = new String[]{transactionKey};
+//
+//            Log.w(LOG_TAG, "called; startDate == null where; " + transactionKey +": "+ Arrays.toString(projection));
+//        } else {
+//            selection = sVehicleRegistrationWithStartDateSelection;
+//            selectionArgs = new String[]{transactionKey, startDate};
+//            Log.w(LOG_TAG, "called; startDate == "+startDate+" where; " + transactionKey +": "+ Arrays.toString(projection));
+//        }
+//
+//        if (!transactionKey.equals("Office")){
+//            return sTransactionByVehicleQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+//                    projection,
+//                    selection,
+//                    selectionArgs,
+//                    null,
+//                    null,
+//                    sortOrder
+//            );
+//        }else {
+//
+//            return mOpenHelper.getReadableDatabase().query(
+//                    TransactionEntry.TABLE_NAME,
+//                    projection,
+//                    selection,
+//                    selectionArgs,
+//                    null,
+//                    null,
+//                    sortOrder
+//
+//            );
+//        }
+//    }
 
     //Retrieve all transactions done beyond the start date given
     private Cursor getTransactionsByVehicleIdAndTransactionId(Uri uri, String[] projection, String sortOrder) {
@@ -432,18 +459,18 @@ public class OffloadProvider extends ContentProvider {
                 Log.w(LOG_TAG, "called; TRANSACTION_WITH_ID");
                 break;
             }
-            case TRANSACTION_WITH_VEHICLE_AND_START_DATE: {
+            case TRANSACTION_WITH_VEHICLE_AND_DATE: {
 //                retCursor = getTransactionsByVehicleIdAndStartDate(uri, projection, sortOrder);
                 retCursor = getVehiclesAndTransactionByStartDate(uri, projection, sortOrder);
 
-                Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_AND_START_DATE");
+                Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_AND_DATE");
                 break;
             }
             case TRANSACTION_WITH_VEHICLE_AND_START_DATE2: {
 //                retCursor = getTransactionsByVehicleIdAndStartDate(uri, projection, sortOrder);
-                retCursor = getVehiclesAndTransactionByStartDate(uri, projection, sortOrder);
+                retCursor = getTransactionByTransactionKey(uri, projection, sortOrder);
 
-                Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_AND_START_DATE");
+                Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_AND_DATE");
                 break;
             }
             // "weather"
@@ -454,7 +481,7 @@ public class OffloadProvider extends ContentProvider {
                 break;
             }
             case TRANSACTIONS_WITH_VEHICLE_REGISTRATION: {
-                retCursor = getTransactionByVehicleReg(uri, projection, sortOrder);
+                retCursor = getTransactionByTransactionKey(uri, projection, sortOrder);
                 Log.w(LOG_TAG, "called; TRANSACTIONS_WITH_VEHICLE_REGISTRATION");
                 break;
             }
@@ -496,7 +523,7 @@ public class OffloadProvider extends ContentProvider {
 
         switch (match) {
             // Student: Uncomment and fill out these two cases
-            case TRANSACTION_WITH_VEHICLE_AND_START_DATE:
+            case TRANSACTION_WITH_VEHICLE_AND_DATE:
                 return TransactionEntry.CONTENT_ITEM_TYPE;
 //            case TRANSACTION_WITH_VEHICLE_ID_AND_TRANSACTION_ID:
 //                return TransactionEntry.CONTENT_TYPE;
@@ -517,6 +544,7 @@ public class OffloadProvider extends ContentProvider {
         switch (match) {
             case TRANSACTIONS: {
                 long _id = db.insertWithOnConflict(TransactionEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                Log.w(LOG_TAG, "insert; TRANSACTIONS: " + values);
                 if (_id > 0)
                     uri = TransactionEntry.buildTransactionUri(_id);
                 else
@@ -525,6 +553,8 @@ public class OffloadProvider extends ContentProvider {
             }
             case VEHICLES: {
                 long _id = db.insertWithOnConflict(VehicleEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                Log.w(LOG_TAG, "insert; VEHICLES: " + values);
+
                 if (_id > 0)
                     uri = VehicleEntry.buildVehicleUri(_id);
                 else
@@ -600,16 +630,35 @@ public class OffloadProvider extends ContentProvider {
     }
 
     @Override
-    public int bulkInsert(@NonNull Uri uri, ContentValues[] values) {
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         switch (match) {
-            case TRANSACTIONS:
-                db.beginTransaction();
+            case VEHICLES:
                 int returnCount = 0;
+                db.beginTransaction();
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(TransactionEntry.TABLE_NAME, null, value);
+                        long _id = db.insertWithOnConflict(VehicleEntry.TABLE_NAME, null, value, SQLiteDatabase.CONFLICT_REPLACE);
+                        Log.w(LOG_TAG, "bulkInsert; VEHICLES: " + value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+
+            case TRANSACTIONS:
+                db.beginTransaction();
+                returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insertWithOnConflict(TransactionEntry.TABLE_NAME, null, value, SQLiteDatabase.CONFLICT_REPLACE);
+                        Log.w(LOG_TAG, "bulkInsert; TRANSACTIONS: " + value);
                         if (_id != -1) {
                             returnCount++;
                         }

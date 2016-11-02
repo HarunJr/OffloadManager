@@ -27,7 +27,7 @@ public class ExpenseFragment extends Fragment {
     private static final String LOG_TAG = ExpenseFragment.class.getSimpleName();
 
     private static final String TYPE = "type";
-    private static final String VEHICLE_REG = "vehicleReg";
+    private static final String VEHICLE_REG = "transactionKey";
     private static int mType;
     private static String mVehicleReg;
 

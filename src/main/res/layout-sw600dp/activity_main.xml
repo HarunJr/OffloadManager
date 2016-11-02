@@ -21,8 +21,7 @@
     This layout is a two-pane layout for the Items master/detail flow.
     -->
         <fragment
-            android:id="@+id/fragment_vehicles"
-            android:name="com.harun.offloadmanager.fragments.VehiclesFragment"
+            android:id="@+id/vehicle_fragment_container"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2"

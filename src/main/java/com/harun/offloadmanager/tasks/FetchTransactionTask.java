@@ -52,7 +52,7 @@ public class FetchTransactionTask extends AsyncTask<Void, Void, String> {
         String JSON_STRING;
         String vehicleJsonString = null;
         try {
-            URL url = new URL(json_url);
+            URL url = new URL("http://api.doea.co.ke/items");
             httpURLConnection = (HttpURLConnection) url.openConnection();
             InputStream inputStream = httpURLConnection.getInputStream();
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));

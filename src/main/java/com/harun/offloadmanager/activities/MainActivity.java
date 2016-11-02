@@ -3,7 +3,9 @@ package com.harun.offloadmanager.activities;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -12,7 +14,7 @@ import android.widget.CalendarView;
 import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.DateHelper;
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.UserLocalStore;
+import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.fragments.DetailsFragment;
 import com.harun.offloadmanager.fragments.VehiclesFragment;
 import com.harun.offloadmanager.fragments.VehiclesHistory;
@@ -25,7 +27,8 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
     CollapsingToolbarLayout collapsingToolbarLayout;
     CalendarView calendarView;
     private boolean mTwoPane;
-    UserLocalStore userLocalStore;
+    LocalStore userLocalStore;
+    long dateTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,15 +36,14 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         setContentView(R.layout.activity_main);
         Constants.toolbar = (Toolbar) findViewById(R.id.main_activity_toolbar);
 
-        userLocalStore = new UserLocalStore(getApplicationContext());
+        userLocalStore = new LocalStore(getApplicationContext());
+
         //TODO: Create *calendarView* or use library https://github.com/GerritHoekstra/CompactCalendarViewToolbar
 
         checkPane(savedInstanceState);
-        displayCalendarView();
-
     }
 
-    private void checkPane(Bundle savedInstanceState){
+    private void checkPane(Bundle savedInstanceState) {
         if (findViewById(R.id.vehicle_detail_container) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -56,10 +58,10 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
                         .replace(R.id.vehicle_detail_container, new DetailsFragment())
                         .commit();
             }
-
         } else {
             mTwoPane = false;
-            authenticate();
+            //Proceeds to onStart
+
         }
     }
 
@@ -68,15 +70,28 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         super.onStart();
         Log.w(LOG_TAG, "onStart ");
 
-        if (authenticate()){
-            addVehiclesFragment();
-        }else {
-            startActivity(new Intent(this, LoginActivity.class));
+        if (authenticate()) {
+            displayCalendarView();
+
+            dateTime = System.currentTimeMillis();
+            addVehiclesFragment(dateTime);
+
+        } else {
+            startActivity(new Intent(this, LoginActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
         }
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.w(LOG_TAG, "onRestart ");
+        // Activity being restarted from stopped state
+    }
 
-    private boolean authenticate(){
+    private boolean authenticate() {
         Log.w(LOG_TAG, String.valueOf(userLocalStore.getUserLoggedIn()));
         return userLocalStore.getUserLoggedIn();
     }
@@ -85,11 +100,10 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         calendarView = (CalendarView) findViewById(R.id.calendar_view);
         calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
-            public void onSelectedDayChange(CalendarView calendarView, int year, int month, int dayOfMonth) {
+            public void onSelectedDayChange(@NonNull CalendarView calendarView, int year, int month, int dayOfMonth) {
 //                Toast.makeText(getApplicationContext(), dayOfMonth, Toast.LENGTH_SHORT).show();
 
                 //TODO: Check how day, time and calendarDay coiniside at midnight
-                long dateTime = System.currentTimeMillis();
                 String day = DateHelper.getFormattedDayString(dateTime);
                 String time = DateHelper.getFormattedTimeString(dateTime);
 
@@ -116,14 +130,13 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
                 if (!calDayDate.equals(day)) {
                     addVehiclesHistoryFragment(calMilliTime, dayNext);
                 } else {
-                    addVehiclesFragment();
+                    addVehiclesFragment(dateTime);
                 }
 
                 Log.w(LOG_TAG, "calendarDay " + calDayDate);
 
 //                PostToServerTask postToServerTask = new PostToServerTask(getApplicationContext());
 //                postToServerTask.execute(method, calendarDay);
-
             }
         });
     }
@@ -140,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         Log.w(LOG_TAG, "addVehiclesHistoryFragment " + args);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_vehicles, vehiclesHistory)
+                .replace(R.id.vehicle_fragment_container, vehiclesHistory)
                 .commit();
 
         setSupportActionBar(Constants.toolbar);
@@ -149,14 +162,23 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         getSupportActionBar().setTitle(R.string.vehicles_history_title_label);
     }
 
-    public void addVehiclesFragment() {
+    public void addVehiclesFragment(long dateMilli) {
         //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
         Log.w(LOG_TAG, "addVehiclesFragment ");
+        Bundle args = new Bundle();
+        args.putLong(Constants.CURRENT_DAY, dateMilli);
 
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragment_vehicles, new VehiclesFragment())
-                .commit();
+        VehiclesFragment vehiclesFragment = new VehiclesFragment();
+        vehiclesFragment.setArguments(args);
 
+        final FragmentManager fragmentManager = getSupportFragmentManager();
+        final android.support.v4.app.Fragment fragment= fragmentManager.findFragmentById(R.id.vehicle_fragment_container);
+
+        if (fragment == null || !(fragment instanceof VehiclesFragment)) {
+            fragmentManager.beginTransaction()
+                    .add(R.id.vehicle_fragment_container, vehiclesFragment)
+                    .commitAllowingStateLoss();
+        }
         setSupportActionBar(Constants.toolbar);
 
         assert getSupportActionBar() != null;
@@ -164,21 +186,23 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
     }
 
     @Override
-    public void onItemSelected(Uri contentUri) {
-        Log.w(LOG_TAG, "onItemSelected " + contentUri);
+    public void onFragmentInteraction(Uri contentUri, long dateTime) {
+        Log.w(LOG_TAG, "onFragmentInteraction " + contentUri);
 
         if (mTwoPane) {
             Bundle args = new Bundle();
-            args.putParcelable(DetailsFragment.DETAIL_URI, getIntent().getData());
+            args.putParcelable(Constants.DETAIL_URI, getIntent().getData());
+            args.putLong(Constants.CURRENT_DAY, dateTime);
+
             DetailsFragment detailsFragment = new DetailsFragment();
             detailsFragment.setArguments(args);
 
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.vehicle_detail_container, detailsFragment)
                     .commit();
-
         } else {
             startActivity(new Intent(getApplicationContext(), DetailsActivity.class)
+                    .putExtra(Constants.CURRENT_DAY, dateTime)
                     .setData(contentUri));
         }
     }
