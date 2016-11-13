@@ -3,6 +3,7 @@ package com.harun.offloadmanager.activities;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.FragmentManager;
@@ -10,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.widget.CalendarView;
+import android.widget.Toast;
 
 import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.DateHelper;
@@ -29,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
     private boolean mTwoPane;
     LocalStore userLocalStore;
     long dateTime;
+    private Boolean exit = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +65,19 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
             mTwoPane = false;
             //Proceeds to onStart
 
+            if (authenticate()) {
+                displayCalendarView();
+
+                dateTime = System.currentTimeMillis();
+                addVehiclesFragment(dateTime);
+
+            } else {
+                startActivity(new Intent(this, LoginActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            }
+
         }
     }
 
@@ -69,19 +85,6 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
     protected void onStart() {
         super.onStart();
         Log.w(LOG_TAG, "onStart ");
-
-        if (authenticate()) {
-            displayCalendarView();
-
-            dateTime = System.currentTimeMillis();
-            addVehiclesFragment(dateTime);
-
-        } else {
-            startActivity(new Intent(this, LoginActivity.class)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
-        }
     }
 
     @Override
@@ -164,7 +167,6 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
 
     public void addVehiclesFragment(long dateMilli) {
         //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
-        Log.w(LOG_TAG, "addVehiclesFragment ");
         Bundle args = new Bundle();
         args.putLong(Constants.CURRENT_DAY, dateMilli);
 
@@ -174,9 +176,15 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         final FragmentManager fragmentManager = getSupportFragmentManager();
         final android.support.v4.app.Fragment fragment= fragmentManager.findFragmentById(R.id.vehicle_fragment_container);
 
-        if (fragment == null || !(fragment instanceof VehiclesFragment)) {
+        if (fragment == null) {
+            Log.w(LOG_TAG, "addVehiclesFragment without fragment Vehicles " + fragment);
             fragmentManager.beginTransaction()
                     .add(R.id.vehicle_fragment_container, vehiclesFragment)
+                    .commitAllowingStateLoss();
+        }else {
+            Log.w(LOG_TAG, "addVehiclesFragment with fragment " + fragment);
+            fragmentManager.beginTransaction()
+                    .replace(R.id.vehicle_fragment_container, vehiclesFragment)
                     .commitAllowingStateLoss();
         }
         setSupportActionBar(Constants.toolbar);
@@ -206,4 +214,23 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
                     .setData(contentUri));
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        //do nothing
+        if (exit) {
+            finish(); // finish activity
+        } else {
+            Toast.makeText(this, "Press Back again to Exit.",
+                    Toast.LENGTH_SHORT).show();
+            exit = true;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    exit = false;
+                }
+            }, 3 * 1000);
+        }
+    }
+
 }

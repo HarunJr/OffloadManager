@@ -5,12 +5,12 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.widget.EditText;
 
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.fragments.DialogInputFragment;
@@ -68,15 +68,8 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
                 .commit();
     }
 
-    private void startDetailActivity(Uri vehicleReg) {
-
-        Log.w(LOG_TAG, "startDetailActivity " + vehicleReg);
-        startActivity(new Intent(getApplicationContext(), DetailsActivity.class)
-                .setData(vehicleReg));
-    }
-
     @Override
-    public void onCollectionButtonClicked(String reg, String method, int collection, int type, String description) {
+    public void onCollectionButtonClicked(String reg, String method, int collection, int type, String description, EditText mCollectionInput) {
         Log.w(LOG_TAG, "onCollectionButtonClicked: " + method);
         String stringCollection = String.valueOf(collection);
         String stringType = String.valueOf(type);

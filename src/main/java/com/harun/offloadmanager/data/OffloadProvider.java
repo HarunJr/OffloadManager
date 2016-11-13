@@ -601,7 +601,6 @@ public class OffloadProvider extends ContentProvider {
             getContext().getContentResolver().notifyChange(uri, null);
         }
         return rowsDeleted;
-
     }
 
     @Override

@@ -208,10 +208,18 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                     break;
                 }default:
             }
+//            double collectionTotal;
+//            double expenseTotal;
+//            do {
+//                 collectionTotal = dailyVehicleCollection;
+//            }while (dailyVehicleCollection != 0);
+//
+//            do {
+//                expenseTotal = dailyVehicleExpense;
+//            }while (dailyVehicleExpense !=0);
 
             dailyDifference = (dailyVehicleCollection - dailyVehicleExpense);
             Log.w(LOG_TAG, "onLoadFinished: >>>" + dailyVehicleCollection + "," + dailyVehicleExpense);
-
             String formattedDifference = DateHelper.getFormattedCurrency(getContext(), dailyDifference);
 
             headerVehicleDateView.setText(DateHelper.getFormattedDayString(calMilliTime));

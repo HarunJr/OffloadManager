@@ -115,15 +115,16 @@ public class IncomeFragment extends Fragment {
         Log.w(LOG_TAG, "sendCollectionData: ");
         mCollectionInput = edittext;
         if (mCollectionInput.getText().toString().trim().length() != 0){
+            long dateTime = System.currentTimeMillis();
+            String day = DateHelper.getFormattedDayString(dateTime);
 
+            final String method = "add_transaction";
+            final int collection = Integer.parseInt(mCollectionInput.getText().toString());
+            final int type = Integer.parseInt(String.valueOf(mType));
+            final String description = day;
+
+            mCollectionInput.setText("");
             Snackbar.make(mCoordinatorLayout, "Sent!", Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
-                long dateTime = System.currentTimeMillis();
-                String day = DateHelper.getFormattedDayString(dateTime);
-
-                String method = "add_transaction";
-                int collection = Integer.parseInt(mCollectionInput.getText().toString());
-                int type = Integer.parseInt(String.valueOf(mType));
-                String description = day;
 
                 @Override
                 public void onDismissed(Snackbar snackbar, int event) {
@@ -132,7 +133,7 @@ public class IncomeFragment extends Fragment {
                         case Snackbar.Callback.DISMISS_EVENT_SWIPE:
                             Log.w(LOG_TAG, "DISMISS_EVENT_SWIPE: " + mVehicleReg +", "+collection);
                             ((OnSendCollectionListener) mContext).onCollectionButtonClicked(
-                                    mVehicleReg, method, collection, type, description);
+                                    mVehicleReg, method, collection, type, description, mCollectionInput);
                             break;
                         case Snackbar.Callback.DISMISS_EVENT_ACTION:
                             Log.w(LOG_TAG, "DISMISS_EVENT_ACTION: " + mContext);
@@ -144,7 +145,7 @@ public class IncomeFragment extends Fragment {
                             Toast.makeText(mContext, "TIME OUT! Sending " + collection + " to server", Toast.LENGTH_LONG).show();
 
                             ((OnSendCollectionListener) mContext).onCollectionButtonClicked(
-                                    mVehicleReg, method, collection, type, description);
+                                    mVehicleReg, method, collection, type, description, mCollectionInput);
                             break;
                     }
                 }
@@ -155,6 +156,7 @@ public class IncomeFragment extends Fragment {
             }).setAction("Undo! ", new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
                 }
 
             }).setDuration(5000)
@@ -167,7 +169,8 @@ public class IncomeFragment extends Fragment {
 
     public interface OnSendCollectionListener {
         // TODO: Update argument type and name
-        void onCollectionButtonClicked(String vehicleReg, String method, int collection, int type, String description);
+
+        void onCollectionButtonClicked(String vehicleReg, String method, int collection, int type, String description, EditText mCollectionInput);
     }
 }
 

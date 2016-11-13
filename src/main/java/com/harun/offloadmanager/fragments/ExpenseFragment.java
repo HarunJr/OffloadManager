@@ -119,6 +119,9 @@ public class ExpenseFragment extends Fragment {
             int expense = Integer.parseInt(mExpenseInput.getText().toString());
             int type = Integer.parseInt(String.valueOf(mType));
 
+            mExpenseInput.setText("");
+
+
             Log.w(LOG_TAG, "onCreateView: " + expense + ", " + type);
             ((OnSendExpenseListener) mContext).onExpenseButtonClicked(
                     mVehicleReg, method, expense, type);

@@ -45,8 +45,9 @@ public class OffloadDbHelper extends SQLiteOpenHelper {
                     + TransactionEntry.COLUMN_VEHICLE_KEY + " INTEGER NOT NULL, "
                     + TransactionEntry.COLUMN_AMOUNT + " REAL NOT NULL, "
                     + TransactionEntry.COLUMN_TYPE + " INTEGER NOT NULL, "
-                    + TransactionEntry.COLUMN_DATE_TIME + " INTEGER NOT NULL, "
                     + TransactionEntry.COLUMN_DESCRIPTION + " VARCHAR(255), "
+                    + TransactionEntry.COLUMN_DATE_TIME + " INTEGER NOT NULL, "
+                    + TransactionEntry.COLUMN_SYNC + " INTEGER NOT NULL, "
                     + "FOREIGN KEY (" + TransactionEntry.COLUMN_VEHICLE_KEY + ") REFERENCES "
                     + VehicleEntry.TABLE_NAME + "(" + VehicleEntry.COLUMN_VEHICLE_REGISTRATION +
                     ") " + ");";

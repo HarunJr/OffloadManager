@@ -2,6 +2,7 @@ package com.harun.offloadmanager.fragments;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -33,6 +34,7 @@ import com.harun.offloadmanager.activities.LoginActivity;
 import com.harun.offloadmanager.adapters.VehiclesAdapter;
 import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.data.OffloadContract;
+import com.harun.offloadmanager.models.Transaction;
 import com.harun.offloadmanager.models.User;
 import com.harun.offloadmanager.tasks.ServerRequest;
 
@@ -99,7 +101,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         if (getArguments() != null) {
             dateTime = getArguments().getLong(Constants.CURRENT_DAY);
             Log.w(LOG_TAG, "onCreate " + dateTime);
-        }else {
+        } else {
             Log.w(LOG_TAG, "Error...NO ARGS " + dateTime);
 
         }
@@ -155,6 +157,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         return rootView;
     }
 
+
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -167,7 +170,22 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         super.onStart();
         Log.w(LOG_TAG, "onStart");
         if (isNetworkAvailable()) {
+            Log.w(LOG_TAG, "isNetworkAvailable()" + isNetworkAvailable());
+
+            LocalStore localStore = new LocalStore(getContext());
+            Transaction transaction = localStore.getTransactionsNotSynced();
+
+            if (transaction != null){
+                Log.w(LOG_TAG, "onStart()" + transaction.vehicleKey);
+
+                String method = "add_transaction";
+                ServerRequest serverRequest = new ServerRequest(getContext());
+                serverRequest.execute(method,
+                        transaction.vehicleKey, transaction.amount, transaction.type, transaction.description, transaction.dateTime);
+            }
+
             updateView();
+
         } else {
             Toast.makeText(getActivity(), R.string.no_internet_message, Toast.LENGTH_LONG).show();
         }
@@ -189,7 +207,12 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
                 return true;
 
             case R.id.action_refresh:
-                updateView();
+                if (isNetworkAvailable()) {
+                    Log.w(LOG_TAG, "isNetworkAvailable()" + isNetworkAvailable());
+                    updateView();
+                } else {
+                    Toast.makeText(getActivity(), R.string.no_internet_message, Toast.LENGTH_LONG).show();
+                }
                 return true;
 
             case R.id.action_logout:
@@ -208,10 +231,10 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         }
     }
 
-
     public boolean isNetworkAvailable() {
         ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        Log.w(LOG_TAG, "isNetworkAvailable" + networkInfo);
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
@@ -230,6 +253,25 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
 //        OffloadSyncAdapter.syncImmediately(getContext());
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getActivity() != null) {
+            Log.w(LOG_TAG, "onResume");
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+    }
+
+
+//    @Override
+//    public void onSaveInstanceState(Bundle outState) {
+//        if (mPosition != mRecyclerView.INVALID_POSITION) {
+//            outState.putInt(SELECTED_KEY, mPosition);
+//        }
+//
+//        super.onSaveInstanceState(outState);
+//    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -323,7 +365,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     public interface OnFragmentInteractionListener {
-//        // TODO: Update argument type and name
+        //        // TODO: Update argument type and name
 //        void onFragmentInteraction(Uri uri);
         void onFragmentInteraction(Uri uri, long dateTime);
     }

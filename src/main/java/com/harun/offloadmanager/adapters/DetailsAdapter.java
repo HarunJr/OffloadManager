@@ -60,7 +60,7 @@ public class DetailsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         mCursor.moveToPosition(position);
-        Log.w(LOG_TAG, "onBindViewHolder: ");
+        Log.w(LOG_TAG, "onBindViewHolder: " + mCursor.getString(DetailsFragment.COL_DESCRIPTION));
 
         int type = mCursor.getInt(DetailsFragment.COL_TYPE);
         double transactionAmount = mCursor.getDouble(DetailsFragment.COL_AMOUNT);
@@ -94,11 +94,8 @@ public class DetailsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public int getItemViewType(int position) {
         Log.w(LOG_TAG, "getItemViewType: " + position);
-        if (position == 0) {
-            return TYPE_HEADER;
-        } else {
-            return TYPE_ITEM;
-        }
+        return TYPE_HEADER;
+
     }
 
     public void swapCursor(Cursor newCursor) {
