@@ -48,6 +48,7 @@ public class OffloadProvider extends ContentProvider {
     static final int TRANSACTION_WITH_START_DATE = 203;
     static final int TRANSACTION_WITH_VEHICLE_AND_DATE = 204;
     static final int TRANSACTION_WITH_VEHICLE_AND_START_DATE2 = 205;
+    static final int TRANSACTION_WITH_VEHICLE_SUMMARY = 206;
 
     private static final SQLiteQueryBuilder sTransactionByVehicleQueryBuilder;
 
@@ -97,17 +98,27 @@ public class OffloadProvider extends ContentProvider {
 
     private static final String sVehicleWithDateSelection =
             VehicleEntry.TABLE_NAME +
-                    "." + VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME + " >= ? AND "+
-                    VehicleEntry.TABLE_NAME+"."+VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME+" < ?";
+                    "." + VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME + " >= ? AND " +
+                    VehicleEntry.TABLE_NAME + "." + VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME + " < ?";
 
-    private static final String sVehiclesWithHistoryDateSelection =
+    private static final String sTransactionSummaryDateSelection =
             "strftime('%Y-%m-%d', "
-                    +TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_DATE_TIME
-                    +"/ 1000, 'unixepoch') >= strftime('%Y-%m-%d', ?/ 1000, 'unixepoch')  AND " +
+                    + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_DATE_TIME
+                    + "/ 1000, 'unixepoch') >= strftime('%Y-%m-%d', ?/ 1000, 'unixepoch')  AND " +
                     "strftime('%Y-%m-%d', "
-                    +TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_DATE_TIME
+                    + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_DATE_TIME
                     + "/ 1000, 'unixepoch')< strftime('%Y-%m-%d', ?/ 1000, 'unixepoch') AND "
-                    + TransactionEntry.TABLE_NAME +"." + TransactionEntry.COLUMN_TYPE +" = ?";
+                    + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_TYPE + " = ? AND "
+                    + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_TYPE + " = ?";
+
+    private static final String sTransactionDateSelection =
+            "strftime('%Y-%m-%d', "
+                    + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_DATE_TIME
+                    + "/ 1000, 'unixepoch') >= strftime('%Y-%m-%d', ?/ 1000, 'unixepoch')  AND " +
+                    "strftime('%Y-%m-%d', "
+                    + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_DATE_TIME
+                    + "/ 1000, 'unixepoch')< strftime('%Y-%m-%d', ?/ 1000, 'unixepoch') AND "
+                    + TransactionEntry.TABLE_NAME + "." + TransactionEntry.COLUMN_TYPE + " = ?";
 
     private static final String sTransactionWithTransactionId =
             TransactionEntry.TABLE_NAME +
@@ -137,7 +148,7 @@ public class OffloadProvider extends ContentProvider {
     private static final String sVehicleRegistrationWithStartDateSelection =
             TransactionEntry.TABLE_NAME +
                     "." + TransactionEntry.COLUMN_VEHICLE_KEY + " = ? AND " +
-                    "strftime('%Y-%m-%d', "+TransactionEntry.TABLE_NAME + "."
+                    "strftime('%Y-%m-%d', " + TransactionEntry.TABLE_NAME + "."
                     + TransactionEntry.COLUMN_DATE_TIME + "/ 1000, 'unixepoch') = strftime('%Y-%m-%d', ?/ 1000, 'unixepoch') ";
 
     //location.location_setting = ? AND date = ?
@@ -167,6 +178,7 @@ public class OffloadProvider extends ContentProvider {
         matcher.addURI(authority, PATH_TRANSACTIONS + "date/*", TRANSACTION_WITH_START_DATE);
         matcher.addURI(authority, PATH_TRANSACTIONS + "/#/#/#", TRANSACTION_WITH_VEHICLE_AND_DATE);
         matcher.addURI(authority, PATH_TRANSACTIONS + "/*/#", TRANSACTION_WITH_VEHICLE_AND_START_DATE2);
+        matcher.addURI(authority, PATH_TRANSACTIONS + "/#/#/#/#", TRANSACTION_WITH_VEHICLE_SUMMARY);
 
         return matcher;
 
@@ -186,7 +198,6 @@ public class OffloadProvider extends ContentProvider {
 
         );
     }
-
 
 
     //Retrieve all Vehicle items created beyond the start date given
@@ -216,7 +227,7 @@ public class OffloadProvider extends ContentProvider {
         String[] selectionArgs = new String[]{String.valueOf(calDate), String.valueOf(nextDate)};
         String groupBy = "vehicleRegistration";
 
-        Log.d(LOG_TAG, "ALL_VEHICLES_WITH_DATE_CODE: " + selection +" : "+ Arrays.toString(selectionArgs));
+        Log.d(LOG_TAG, "ALL_VEHICLES_WITH_DATE_CODE: " + selection + " : " + Arrays.toString(selectionArgs));
 //        return mOpenHelper.getReadableDatabase().query(
 //                VehicleEntry.TABLE_NAME,
 //                projection,
@@ -239,25 +250,54 @@ public class OffloadProvider extends ContentProvider {
     }
 
     //Retrieve all Vehicle items created beyond the start date given
+    private Cursor getVehiclesTransactionSummaryByDate(Uri uri, String[] projection, String sortOrder) {
+        long calDate = TransactionEntry.getCalDateFromTransactionsUri(uri);
+        long nextDate = TransactionEntry.getNextDateFromTransactionsUri(uri);
+        int type = TransactionEntry.getTypeFromUri(uri);
+        Log.d(LOG_TAG, "collectionType ==: " + type);
+
+        String selection = sTransactionDateSelection;
+        String[] selectionArgs = new String[0];
+        Log.d(LOG_TAG, "getVehiclesTransactionSummaryByDate == : " + selection + "\n type= " + type + "projection: " + Arrays.toString(projection));
+
+        if (type != 0) {
+            selectionArgs = new String[]{String.valueOf(calDate), String.valueOf(nextDate), String.valueOf(1)};
+            Log.d(LOG_TAG, "Type == 1: " + selection + " : " + type + "\n" + Arrays.toString(projection));
+        } else {
+            selectionArgs = new String[]{String.valueOf(calDate), String.valueOf(nextDate), String.valueOf(0)};
+            Log.d(LOG_TAG, "Type == 0: " + selection + " : " + type + "\n" + Arrays.toString(projection));
+        }
+        Log.d(LOG_TAG, "ALL_VEHICLES_TRANSACTION_WITH_DATE_: " + selection + " : " + Arrays.toString(selectionArgs));
+        return mOpenHelper.getReadableDatabase().query(
+                TransactionEntry.TABLE_NAME,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder
+        );
+    }
+
     private Cursor getVehiclesAndTransactionByStartDate(Uri uri, String[] projection, String sortOrder) {
         long calDate = TransactionEntry.getCalDateFromTransactionsUri(uri);
         long nextDate = TransactionEntry.getNextDateFromTransactionsUri(uri);
         int type = TransactionEntry.getTypeFromUri(uri);
-        Log.d(LOG_TAG, "Type ==: "+ type);
+        Log.d(LOG_TAG, "Type ==: " + type);
 
-        String selection = sVehiclesWithHistoryDateSelection;
+        String selection = sTransactionDateSelection;
         String groupBy = VehicleEntry.COLUMN_VEHICLE_REGISTRATION;
         String[] selectionArgs;
 
-        if (type != 0){
+        if (type != 0) {
             selectionArgs = new String[]{String.valueOf(calDate), String.valueOf(nextDate), String.valueOf(1)};
-            Log.d(LOG_TAG, "Type == 1: " + selection +" : "+ type + "\n"+ Arrays.toString(projection));
-        }else {
+            Log.d(LOG_TAG, "Type == 1: " + selection + " : " + type + "\n" + Arrays.toString(projection));
+        } else {
             selectionArgs = new String[]{String.valueOf(calDate), String.valueOf(nextDate), String.valueOf(0)};
-            Log.d(LOG_TAG, "Type == 0: " + selection +" : "+ type + "\n"+ Arrays.toString(projection));
+            Log.d(LOG_TAG, "Type == 0: " + selection + " : " + type + "\n" + Arrays.toString(projection));
         }
 
-        Log.d(LOG_TAG, "ALL_VEHICLES_WITH_TRANSACTION_AND_DATE_CODE: " + selection +" : "+ Arrays.toString(selectionArgs));
+        Log.d(LOG_TAG, "ALL_VEHICLES_WITH_TRANSACTION_AND_DATE_CODE: " + selection + " : " + Arrays.toString(selectionArgs));
         return sVehicleWithTransactionQueryBuilder.query(
                 mOpenHelper.getReadableDatabase(),
                 projection,
@@ -268,6 +308,7 @@ public class OffloadProvider extends ContentProvider {
                 sortOrder
         );
     }
+
     //Retrieve all Transaction items from the database
     private Cursor getTransactions(String[] projection) {
 
@@ -311,14 +352,14 @@ public class OffloadProvider extends ContentProvider {
             selection = sTransactionWithVehicleId;
             selectionArgs = new String[]{transactionKey};
 
-            Log.w(LOG_TAG, "called; startDate == null where; " + transactionKey +": "+ Arrays.toString(projection));
+            Log.w(LOG_TAG, "called; startDate == null where; " + transactionKey + ": " + Arrays.toString(projection));
         } else {
             selection = sVehicleRegistrationWithStartDateSelection;
             selectionArgs = new String[]{transactionKey, startDate};
-            Log.w(LOG_TAG, "called; startDate == "+startDate+" where; " + transactionKey +": "+ Arrays.toString(projection));
+            Log.w(LOG_TAG, "called; startDate == " + startDate + " where; " + transactionKey + ": " + Arrays.toString(projection));
         }
 
-        if (!transactionKey.equals("Office")){
+        if (!transactionKey.equals("Office")) {
             return sTransactionByVehicleQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                     projection,
                     selection,
@@ -328,7 +369,7 @@ public class OffloadProvider extends ContentProvider {
                     sortOrder
             );
 
-        }else {
+        } else {
 
             return mOpenHelper.getReadableDatabase().query(
                     TransactionEntry.TABLE_NAME,
@@ -342,50 +383,6 @@ public class OffloadProvider extends ContentProvider {
             );
         }
     }
-
-//    private Cursor getTransactionByVehicleAndDate(Uri uri, String[] projection, String sortOrder) {
-//        // ToDo : retrieve vehicleId
-//        String transactionKey = TransactionEntry.getVehicleRegFromUri(uri);
-//        String startDate = TransactionEntry.getStartDateFromUri(uri);
-//
-//        String[] selectionArgs;
-//        String selection;
-//
-//        // If no date given search without considering date of transaction
-//        if (startDate == null) {
-//            selection = sTransactionWithVehicleId;
-//            selectionArgs = new String[]{transactionKey};
-//
-//            Log.w(LOG_TAG, "called; startDate == null where; " + transactionKey +": "+ Arrays.toString(projection));
-//        } else {
-//            selection = sVehicleRegistrationWithStartDateSelection;
-//            selectionArgs = new String[]{transactionKey, startDate};
-//            Log.w(LOG_TAG, "called; startDate == "+startDate+" where; " + transactionKey +": "+ Arrays.toString(projection));
-//        }
-//
-//        if (!transactionKey.equals("Office")){
-//            return sTransactionByVehicleQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-//                    projection,
-//                    selection,
-//                    selectionArgs,
-//                    null,
-//                    null,
-//                    sortOrder
-//            );
-//        }else {
-//
-//            return mOpenHelper.getReadableDatabase().query(
-//                    TransactionEntry.TABLE_NAME,
-//                    projection,
-//                    selection,
-//                    selectionArgs,
-//                    null,
-//                    null,
-//                    sortOrder
-//
-//            );
-//        }
-//    }
 
     //Retrieve all transactions done beyond the start date given
     private Cursor getTransactionsByVehicleIdAndTransactionId(Uri uri, String[] projection, String sortOrder) {
@@ -412,7 +409,7 @@ public class OffloadProvider extends ContentProvider {
 //        String[] selectionArgs = new String[]{startDate};
         String selection = sTransactionWithStartDateSelection;
 
-        Log.w(LOG_TAG, "called; getTransactionsByStartDate:" +", "+selection);
+        Log.w(LOG_TAG, "called; getTransactionsByStartDate:" + ", " + selection);
         return sTransactionByVehicleQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
                 selection,
@@ -463,7 +460,7 @@ public class OffloadProvider extends ContentProvider {
 //                retCursor = getTransactionsByVehicleIdAndStartDate(uri, projection, sortOrder);
                 retCursor = getVehiclesAndTransactionByStartDate(uri, projection, sortOrder);
 
-                Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_AND_DATE");
+                Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_AND_DATE "+uri +"\n"+ Arrays.toString(projection));
                 break;
             }
             case TRANSACTION_WITH_VEHICLE_AND_START_DATE2: {
@@ -471,6 +468,13 @@ public class OffloadProvider extends ContentProvider {
                 retCursor = getTransactionByTransactionKey(uri, projection, sortOrder);
 
                 Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_AND_DATE");
+                break;
+            }
+            case TRANSACTION_WITH_VEHICLE_SUMMARY: {
+//                retCursor = getTransactionsByVehicleIdAndStartDate(uri, projection, sortOrder);
+                retCursor = getVehiclesTransactionSummaryByDate(uri, projection, sortOrder);
+
+                Log.w(LOG_TAG, "called; TRANSACTION_WITH_VEHICLE_SUMMARY");
                 break;
             }
             // "weather"
@@ -505,7 +509,7 @@ public class OffloadProvider extends ContentProvider {
                 break;
             }
             default:
-                Log.w(LOG_TAG, "called; query: " + VehicleEntry.getCalDateFromUri(uri)+"/"+VehicleEntry.getNextDateFromUri(uri));
+                Log.w(LOG_TAG, "called; query: " + VehicleEntry.getCalDateFromUri(uri) + "/" + VehicleEntry.getNextDateFromUri(uri));
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
         retCursor.setNotificationUri(getContext().getContentResolver(), uri);

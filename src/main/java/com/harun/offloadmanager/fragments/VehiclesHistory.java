@@ -32,9 +32,12 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
 
     private static final int COLLECTION_LOADER = 0;
     private static final int EXPENSE_LOADER = 1;
+    private static final int SUMMARY_LOADER = 2;
 
     private Cursor cursor1 = null;
     private Cursor cursor2 = null;
+    double dailyVehicleCollection = 0;
+    double dailyVehicleExpense = 0;
 
     private static final String SELECTED_KEY = "selected_position";
 
@@ -135,7 +138,7 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         (calMilliTime, dayNext, COLLECTION_LOADER);
 
                 String[] projection = {OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION,
-                        OffloadContract.TransactionEntry.COLUMN_AMOUNT + " AS COLLECTION ",
+                        "SUM(" + OffloadContract.TransactionEntry.COLUMN_AMOUNT + ") AS COLLECTION ",
                         OffloadContract.TransactionEntry.COLUMN_TYPE};
 
                 Log.w(LOG_TAG, "COLLECTION_LOADER: >>>" + COLLECTION_LOADER + "," + collectionForVehicleWithDateUri);
@@ -147,13 +150,14 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         null,
                         null
                 );
+
             }
             case EXPENSE_LOADER: {
                 Uri expenseForVehicleWithDateUri = OffloadContract.TransactionEntry.buildVehicleWithDateAndType
                         (calMilliTime, dayNext, EXPENSE_LOADER);
 
                 String[] projection = {OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION,
-                        OffloadContract.TransactionEntry.COLUMN_AMOUNT + " AS EXPENSE ",
+                        "SUM(" + OffloadContract.TransactionEntry.COLUMN_AMOUNT + ") AS EXPENSE ",
                         OffloadContract.TransactionEntry.COLUMN_TYPE};
 
                 Log.w(LOG_TAG, "EXPENSE_LOADER: >>>" + EXPENSE_LOADER + "," + expenseForVehicleWithDateUri);
@@ -165,15 +169,15 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         null,
                         null
                 );
+
             }
+
         }
         return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        double dailyVehicleCollection = 0.00;
-        double dailyVehicleExpense = 0.00;
         double dailyDifference = 0.00;
 
         if (data != null && data.moveToFirst()) {
@@ -185,9 +189,7 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                     do {
                         dailyVehicleCollection += cursor1.getDouble(cursor1.getColumnIndexOrThrow("COLLECTION"));
 
-                    } while (data.moveToNext());
-                    String formattedCollection = DateHelper.getFormattedCurrency(getContext(), dailyVehicleCollection);
-                    headerVehicleCollectionView.setText(formattedCollection);
+                    } while (cursor1.moveToNext());
 
                     joinCursors();
 
@@ -196,34 +198,33 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                 case EXPENSE_LOADER: {
 
                     cursor2 = data;
+
                     do {
                         dailyVehicleExpense += cursor2.getDouble(cursor2.getColumnIndexOrThrow("EXPENSE"));
 
-                    } while (data.moveToNext());
-                    String formattedExpense = DateHelper.getFormattedCurrencyExpense(getContext(), dailyVehicleExpense);
-                    headerVehicleExpenseView.setText(formattedExpense);
+                    } while (cursor2.moveToNext());
 
                     joinCursors();
 
                     break;
-                }default:
+                }
+
+                default:
+
             }
-//            double collectionTotal;
-//            double expenseTotal;
-//            do {
-//                 collectionTotal = dailyVehicleCollection;
-//            }while (dailyVehicleCollection != 0);
-//
-//            do {
-//                expenseTotal = dailyVehicleExpense;
-//            }while (dailyVehicleExpense !=0);
 
             dailyDifference = (dailyVehicleCollection - dailyVehicleExpense);
-            Log.w(LOG_TAG, "onLoadFinished: >>>" + dailyVehicleCollection + "," + dailyVehicleExpense);
+
+            String formattedCollection = DateHelper.getFormattedCurrency(getContext(), dailyVehicleCollection);
+            String formattedExpense = DateHelper.getFormattedCurrencyExpense(getContext(), dailyVehicleExpense);
             String formattedDifference = DateHelper.getFormattedCurrency(getContext(), dailyDifference);
 
             headerVehicleDateView.setText(DateHelper.getFormattedDayString(calMilliTime));
+            headerVehicleExpenseView.setText(formattedExpense);
+            headerVehicleCollectionView.setText(formattedCollection);
             headerVehicleDifferenceView.setText(formattedDifference);
+
+            Log.w(LOG_TAG, "onLoadFinished: >>>" + dailyVehicleCollection +"--"+ dailyVehicleExpense );
 
         }
         if (mPosition != RecyclerView.NO_POSITION) {
@@ -239,10 +240,12 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
     }
 
     private void joinCursors() {
+        Log.w(LOG_TAG, "joinCursors: >>>" + dailyVehicleCollection +"--"+ dailyVehicleExpense);
         if (cursor1 != null && cursor2 != null) {
             // use CursorJoiner here
 
-            CursorJoiner joiner = new CursorJoiner(cursor1, new String[]{OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION}, cursor2, new String[]{OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION});
+            CursorJoiner joiner = new CursorJoiner(cursor1, new String[]{OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION},
+                    cursor2, new String[]{OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION});
 
             String[] projectionHistory = {
                     "VEHICLE_REG",
@@ -267,6 +270,7 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                     case RIGHT:
                         // handle case where a row in cursorB is unique
                         // double expense = cursor1.getDouble(cursor1.getColumnIndex("EXPENSE"));
+
                         vehicleReg = cursor2.getString(cursor2.getColumnIndex(OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION));
 
                         expense = cursor2.getDouble(cursor2.getColumnIndex("EXPENSE"));
@@ -275,7 +279,6 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         break;
                     case BOTH:
                         // handle case where a row with the same key is in both cursors
-
                         vehicleReg = cursor1.getString(cursor1.getColumnIndex(OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION));
 
                         collection = cursor1.getDouble(cursor1.getColumnIndex("COLLECTION"));
@@ -283,7 +286,7 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
 
                         Log.w(LOG_TAG, "BOTH: " + vehicleReg + " -- " + collection + "--" + expense);
                         matrixCursor.addRow(new String[]{vehicleReg, Double.toString(expense), Double.toString(collection)});
-                        break;
+                       break;
                 }
             }
 
@@ -293,10 +296,6 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                 Log.w(LOG_TAG, "EXPENSE_LOADER: " + matrixCursor.getCount());
             }
         }
-    }
-
-    private void getDifference(double amount){
-
     }
 
     /**

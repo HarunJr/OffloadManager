@@ -506,7 +506,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
             }
 
         }else {
-            Toast.makeText(mContext, "Unable To Connect To Internet", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "Unable To Connect To Server", Toast.LENGTH_LONG).show();
 
         }
     }

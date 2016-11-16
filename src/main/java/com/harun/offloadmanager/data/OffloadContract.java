@@ -163,13 +163,6 @@ public class OffloadContract {
             return Integer.parseInt(uri.getPathSegments().get(3));
         }
 
-
-
-        public static Uri buildTransactionsWithVehicleIdUri(String vehicleReg)
-        {
-            return CONTENT_URI.buildUpon().appendPath(String.valueOf((vehicleReg))).build();
-        }
-
         /*
             Create URI with vehicle Reg appeded at end of URi
          */
@@ -200,6 +193,24 @@ public class OffloadContract {
         public static String getStartDateFromUri(Uri uri)
         {
             return uri.getQueryParameter(COLUMN_DATE_TIME);
+        }
+
+        public static Uri buildSummaryWithDateAndType(long minDate, long maxDate, int collectionLoader, int expenseLoader) {
+            return CONTENT_URI.buildUpon()
+                    .appendPath(Long.toString(minDate))
+                    .appendPath(Long.toString(maxDate))
+                    .appendPath(Long.toString(collectionLoader))
+                    .appendPath(Long.toString(expenseLoader))
+                    .build();
+        }
+
+        public static int getCollectionUri(Uri uri)
+        {
+            return Integer.parseInt(uri.getPathSegments().get(3));
+        }
+        public static int getExpenseUri(Uri uri)
+        {
+            return Integer.parseInt(uri.getPathSegments().get(4));
         }
 
     }
