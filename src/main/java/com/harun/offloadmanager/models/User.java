@@ -5,8 +5,15 @@ package com.harun.offloadmanager.models;
  */
 
 public class User {
-    public String name, phoneNo, email, pin;
+    public String name, phoneNo, email, pin, type;
 
+    public User(String name, String phoneNo, String email, String pin, String type){
+        this.name = name;
+        this.phoneNo = phoneNo;
+        this.email = email;
+        this.pin = pin;
+        this.type = type;
+    }
     public User(String name, String phoneNo, String email, String pin){
         this.name = name;
         this.phoneNo = phoneNo;

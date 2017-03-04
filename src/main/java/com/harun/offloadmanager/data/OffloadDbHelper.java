@@ -58,7 +58,7 @@ public class OffloadDbHelper extends SQLiteOpenHelper {
             Log.w(LOG_TAG, "onCreate:  SQL_CREATE_VEHICLE_TABLE, SQL_CREATE_TRANSACTION_TABLE" );
 
         } catch (SQLException e) {
-            Toast.makeText(mContext, "" + e, Toast.LENGTH_LONG).show();
+//            Toast.makeText(mContext, "" + e, Toast.LENGTH_LONG).show();
         }
     }
 

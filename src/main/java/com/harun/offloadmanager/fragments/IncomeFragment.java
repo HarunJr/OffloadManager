@@ -111,8 +111,8 @@ public class IncomeFragment extends Fragment {
         }
     }
 
-    public void sendCollectionData(EditText edittext) {
-        Log.w(LOG_TAG, "sendCollectionData: ");
+    public void clickCollectionButton(EditText edittext) {
+        Log.w(LOG_TAG, "clickCollectionButton: ");
         mCollectionInput = edittext;
         if (mCollectionInput.getText().toString().trim().length() != 0){
             long dateTime = System.currentTimeMillis();
@@ -128,11 +128,11 @@ public class IncomeFragment extends Fragment {
 
                 @Override
                 public void onDismissed(Snackbar snackbar, int event) {
-                    Log.w(LOG_TAG, "sendCollectionData: " + collection);
+                    Log.w(LOG_TAG, "clickCollectionButton: " + collection);
                     switch (event) {
                         case Snackbar.Callback.DISMISS_EVENT_SWIPE:
                             Log.w(LOG_TAG, "DISMISS_EVENT_SWIPE: " + mVehicleReg +", "+collection);
-                            ((OnSendCollectionListener) mContext).onCollectionButtonClicked(
+                            ((OnClickCollectionListener) mContext).onCollectionButtonClicked(
                                     mVehicleReg, method, collection, type, description, mCollectionInput);
                             break;
                         case Snackbar.Callback.DISMISS_EVENT_ACTION:
@@ -144,7 +144,7 @@ public class IncomeFragment extends Fragment {
                             Log.w(LOG_TAG, "DISMISS_EVENT_SWIPE: " + mContext);
                             Toast.makeText(mContext, "TIME OUT! Sending " + collection + " to server", Toast.LENGTH_LONG).show();
 
-                            ((OnSendCollectionListener) mContext).onCollectionButtonClicked(
+                            ((OnClickCollectionListener) mContext).onCollectionButtonClicked(
                                     mVehicleReg, method, collection, type, description, mCollectionInput);
                             break;
                     }
@@ -167,7 +167,7 @@ public class IncomeFragment extends Fragment {
         }
     }
 
-    public interface OnSendCollectionListener {
+    public interface OnClickCollectionListener {
         // TODO: Update argument type and name
 
         void onCollectionButtonClicked(String vehicleReg, String method, int collection, int type, String description, EditText mCollectionInput);

@@ -43,8 +43,8 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
     private OnFragmentInteractionListener mListener;
     private VehiclesAdapter mVehiclesAdapter;
-    private RecyclerView mRecyclerView;
     private int mPosition = RecyclerView.NO_POSITION;
+    private RecyclerView mRecyclerView;
 
     private static final String SELECTED_KEY = "selected_position";
     private static final int VEHICLE_LOADER = 0;
@@ -56,7 +56,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
     public CardView headerCardView;
 
     String listenerTag;
-    double difference;
+    double vehicleBalance;
     private long dateTime;
     public static final String[] VEHICLE_COLUMN = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -123,9 +123,9 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
             @Override
             public void onClick(View view) {
                 String officeKey = "Office";
-                int dailyOfficeCollection = (int) difference;
+                int dailyOfficeCollection = (int) vehicleBalance;
 
-                Uri summaryUri = OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(officeKey, dailyOfficeCollection, 0);//difference, office expenses.
+                Uri summaryUri = OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(officeKey, dailyOfficeCollection, 0);//vehicleBalance, office expenses.
                 ((OnFragmentInteractionListener) getActivity()).onFragmentInteraction(summaryUri, dateTime);
                 Log.w(LOG_TAG, "onCreateView " + summaryUri);
             }
@@ -250,7 +250,6 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         new ServerRequest(getActivity()).execute(registerMethod, user.phoneNo);
 
 //        new FetchTransactionTask(getActivity()).execute();
-
 //        OffloadSyncAdapter.syncImmediately(getContext());
     }
 
@@ -262,7 +261,6 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
             getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
     }
-
 
 //    @Override
 //    public void onSaveInstanceState(Bundle outState) {
@@ -313,12 +311,12 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
             while (data.moveToNext());
 
             Log.w(LOG_TAG, "total: " + collectionTotal);
-            difference = collectionTotal - expenseTotal;
+            vehicleBalance = collectionTotal - expenseTotal;
 
             String day = DateHelper.getFormattedDayString(dateTime);
             String formattedCollection = DateHelper.getFormattedCurrency(getContext(), collectionTotal);
             String formattedExpense = DateHelper.getFormattedCurrencyExpense(getContext(), expenseTotal);
-            String formattedDifference = DateHelper.getFormattedCurrency(getContext(), difference);
+            String formattedDifference = DateHelper.getFormattedCurrency(getContext(), vehicleBalance);
 
             headerVehicleDateView.setText(day);
             headerVehicleCollectionView.setText(formattedCollection);

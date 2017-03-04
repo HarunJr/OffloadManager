@@ -15,8 +15,8 @@ import android.widget.Toast;
 
 import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.models.User;
 import com.harun.offloadmanager.data.LocalStore;
+import com.harun.offloadmanager.models.User;
 import com.harun.offloadmanager.models.Vehicle;
 import com.harun.offloadmanager.tasks.ServerRequest;
 
@@ -83,17 +83,6 @@ public class AddVehicleActivity extends AppCompatActivity {
 
                     registerVehicle(vehicle);
 
-                    ServerRequest serverRequest = new ServerRequest(AddVehicleActivity.this);
-                    serverRequest.execute(
-                            method,
-                            vehicleRegistration,
-                            user_key,
-                            vehicleMake,
-                            vehicleModel,
-                            yearOfManufacture,
-                            passengerCapacity,
-                            dateTime);
-
                     startActivity(new Intent(AddVehicleActivity.this, MainActivity.class));
 
                 }else {
@@ -105,10 +94,10 @@ public class AddVehicleActivity extends AppCompatActivity {
 
     private void registerVehicle(Vehicle vehicle) {
         String registerMethod = "add_vehicle";
+        Log.w(LOG_TAG, "registerVehicle "+vehicle.registration +": "+vehicle.userKey);
         new ServerRequest(this).execute(registerMethod,
                 vehicle.registration, vehicle.userKey, vehicle.make, vehicle.model, vehicle.YOM, vehicle.passCap, vehicle.regDate);
     }
-
 
     public boolean isNetworkAvailable(){
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);

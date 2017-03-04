@@ -12,6 +12,7 @@ import com.harun.offloadmanager.fragments.DetailsFragment;
 import com.harun.offloadmanager.models.Transaction;
 import com.harun.offloadmanager.models.User;
 import com.harun.offloadmanager.models.Vehicle;
+import com.harun.offloadmanager.tasks.ServerRequest;
 
 import java.util.ArrayList;
 
@@ -21,7 +22,8 @@ import java.util.ArrayList;
 
 public class LocalStore {
     public static final String LOG_TAG = LocalStore.class.getSimpleName();
-    private static final String SP_NAME = "userDetails";
+    private static final String FCM_PREF = "com.harun.offloadmanager.fcm_pref";
+    private static final String FCM_TOKEN = "com.harun.offloadmanager.fcm_token";
 
     private Context mContext;
     private SharedPreferences userLocal_SP;
@@ -32,8 +34,19 @@ public class LocalStore {
 
     public LocalStore(Context context) {
         this.mContext = context;
-        userLocal_SP = context.getSharedPreferences(SP_NAME, 0);
+        userLocal_SP = context.getSharedPreferences(FCM_PREF, Context.MODE_PRIVATE);
         dbHelper = new OffloadDbHelper(mContext);
+    }
+
+    public void storeToken(String token) {
+        Log.d(LOG_TAG, "storeToken: " + token);
+        SharedPreferences.Editor spEditor = userLocal_SP.edit();
+        spEditor.putString(FCM_TOKEN, token);
+        spEditor.apply();
+    }
+
+    public String getToken() {
+        return userLocal_SP.getString(FCM_TOKEN, "");
     }
 
     //User Data access
@@ -43,6 +56,7 @@ public class LocalStore {
         spEditor.putString("phoneNo", user.phoneNo);
         spEditor.putString("email", user.email);
         spEditor.putString("pin", user.pin);
+        spEditor.putString("type", user.type);
         spEditor.apply();
     }
 
@@ -51,8 +65,9 @@ public class LocalStore {
         String phoneNo = userLocal_SP.getString("phoneNo", "");
         String email = userLocal_SP.getString("email", "");
         String pin = userLocal_SP.getString("pin", "");
+        String type = userLocal_SP.getString("type", "");
 
-        return new User(name, phoneNo, email, pin);
+        return new User(name, phoneNo, email, pin, type);
     }
 
     public void setUserLoggedIn(boolean loggedIn) {
@@ -174,6 +189,11 @@ public class LocalStore {
                 if (transactionRowId > 0) {
                     Log.w(LOG_TAG, "storeTransactionData " + transaction.vehicleKey + ", " + transaction.amount);
 
+                    String method = "add_transaction";
+                    ServerRequest postToServerTask = new ServerRequest(mContext);
+                    postToServerTask.execute(method, transaction.vehicleKey, transaction.amount
+                            , transaction.type, transaction.description, transaction.dateTime);
+
                 } else {
                     Log.w(LOG_TAG, ">>>>ERROR Inserting into SQLitedb: ");
                 }
@@ -188,6 +208,7 @@ public class LocalStore {
         String notSyncedData = "SELECT * FROM " + OffloadContract.TransactionEntry.TABLE_NAME
                 + " WHERE " + OffloadContract.TransactionEntry.COLUMN_SYNC + " = " + 1; //columns does not exist at table
         Cursor cursor = db.rawQuery(notSyncedData, null);
+        Log.w(LOG_TAG, "cursor: "+ cursor.getCount());
         if (cursor.moveToFirst()){
             do {
                 String VehicleKey = cursor.getString(DetailsFragment.COL_VEHICLE_KEY);

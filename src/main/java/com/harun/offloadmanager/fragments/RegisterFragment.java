@@ -18,11 +18,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.models.User;
-import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.activities.LoginActivity;
+import com.harun.offloadmanager.data.LocalStore;
+import com.harun.offloadmanager.models.User;
 import com.harun.offloadmanager.tasks.ServerRequest;
-
 
 public class RegisterFragment extends Fragment {
     public static final String LOG_TAG = RegisterFragment.class.getSimpleName();
@@ -92,8 +91,9 @@ public class RegisterFragment extends Fragment {
                 String phoneNumber = etPhoneNo.getText().toString();
                 String email = etEmail.getText().toString();
                 String passCode = etPassCode.getText().toString();
+                String userType = "owner";
 
-                User user = new User(name, phoneNumber, email, passCode);
+                User user = new User(name, phoneNumber, email, passCode, userType);
 
                 if (email.equals("") || phoneNumber.equals("") || passCode.equals("")) {
 
@@ -110,8 +110,7 @@ public class RegisterFragment extends Fragment {
                     alertDialog.show();
                 } else {
                     registerUser(user);
-                    //                startActivity(new Intent(this, MainActivity.class));
-
+//                    startActivity(new Intent(getActivity(), MainActivity.class));
                 }
             }
         });
@@ -148,10 +147,12 @@ public class RegisterFragment extends Fragment {
         }
     }
 
-
     private void registerUser(User user) {
         String registerMethod = "register_user";
-        new ServerRequest(getActivity()).execute(registerMethod, user.name, user.phoneNo, user.email, user.pin);
+        LocalStore localStore = new LocalStore(getContext());
+        String token = localStore.getToken();
+        Log.w(LOG_TAG, "registerUser" + token);
+        new ServerRequest(getActivity()).execute(registerMethod, user.name, user.phoneNo, user.email, user.pin, user.type, token);
 
     }
 

@@ -13,18 +13,22 @@ import android.util.Log;
 import android.widget.EditText;
 
 import com.harun.offloadmanager.R;
+import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.fragments.DialogInputFragment;
 import com.harun.offloadmanager.fragments.ExpenseFragment;
 import com.harun.offloadmanager.fragments.IncomeFragment;
 import com.harun.offloadmanager.fragments.TransactionsFragment;
+import com.harun.offloadmanager.models.Transaction;
 import com.harun.offloadmanager.tasks.ServerRequest;
 
-public class TransactionsActivity extends AppCompatActivity implements IncomeFragment.OnSendCollectionListener,
-        ExpenseFragment.OnSendExpenseListener, DialogInputFragment.OnSendDescriptionListener{
+public class TransactionsActivity extends AppCompatActivity implements IncomeFragment.OnClickCollectionListener,
+        ExpenseFragment.OnSendExpenseListener, DialogInputFragment.OnSendDescriptionListener {
     private static final String LOG_TAG = TransactionsActivity.class.getSimpleName();
     public static final String VEHICLE_REG = "vehicle_reg";
+    private Transaction transaction;
 
     String vehicleReg;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +42,7 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
     }
 
     private void getDataFromDetailsActivity() {
-         vehicleReg = getIntent().getStringExtra(VEHICLE_REG);
+        vehicleReg = getIntent().getStringExtra(VEHICLE_REG);
     }
 
     private void setToolBar() {
@@ -53,7 +57,6 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
 
         getSupportActionBar().setTitle(vehicleReg);
-
     }
 
     private void addTransactionFragment(String vehicleReg) {
@@ -75,8 +78,11 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
         String stringType = String.valueOf(type);
         String dateTime = String.valueOf(System.currentTimeMillis());
 
-        ServerRequest postToServerTask = new ServerRequest(this);
-        postToServerTask.execute(method, reg, stringCollection, stringType, description, dateTime);
+        transaction = new Transaction(vehicleReg, stringCollection, stringType, description, dateTime);
+
+        LocalStore transactionStore = new LocalStore(this);
+        transactionStore.storeTransactionData(transaction);
+
 
 //        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(reg));
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
@@ -105,7 +111,6 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
     }
-
 
 
 //    @Override

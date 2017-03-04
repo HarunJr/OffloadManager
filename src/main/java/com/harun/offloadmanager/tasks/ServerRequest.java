@@ -86,10 +86,10 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 //        isInternetAvailable();
 
         String insertV_url = BASE_WIFI_URL + "insert_vehicle.php";
-        String transact_url = BASE_WIFI_URL + "transact.php";
-        String register_user_url = BASE_WIFI_URL + "register_user.php";
-        String login_user_url = BASE_WIFI_URL + "login_user.php";
-        String get_data = BASE_WIFI_URL + "get_data.php";
+        String transact_url = BASE_URL + "transact.php";
+        String register_user_url = BASE_URL + "register_user.php";
+        String login_user_url = BASE_URL + "login_user.php";
+        String get_data = BASE_URL + "get_data.php";
         String update_url = BASE_URL + "update.php";
         String delete_url = BASE_URL + "delete.php";
         String method = params[0];
@@ -101,6 +101,8 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                 String phone_no = params[2];
                 String email = params[3];
                 String pin = params[4];
+                String type = params[5];
+                String token = params[6];
 
                 String JSON_STRING;
                 userJsonString = null;
@@ -120,9 +122,11 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                     String data = URLEncoder.encode("name", "UTF-8") + "=" + URLEncoder.encode(name, "UTF-8") + "&" +
                             URLEncoder.encode("phone_no", "UTF-8") + "=" + URLEncoder.encode(phone_no, "UTF-8") + "&" +
                             URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
-                            URLEncoder.encode("pin", "UTF-8") + "=" + URLEncoder.encode(pin, "UTF-8");
+                            URLEncoder.encode("pin", "UTF-8") + "=" + URLEncoder.encode(pin, "UTF-8") + "&" +
+                            URLEncoder.encode("type", "UTF-8") + "=" + URLEncoder.encode(type, "UTF-8") + "&" +
+                            URLEncoder.encode("fcm_token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8");
 
-                    Log.w(LOG_TAG, "method register_user " + name + "," + email + "," + phone_no + "," + pin);
+                    Log.w(LOG_TAG, "method register_user " + name + "," + email + "," + phone_no + "," + pin +","+type);
 
                     bufferedWriter.write(data);
                     bufferedWriter.flush();
@@ -143,7 +147,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                     userJsonString = stringBuilder.toString().trim();
                     Log.w(LOG_TAG, "JSON String: " + userJsonString);
 
-                    return userJsonString;//"User Registration Successful!";
+                    return "Registration Successful";//"User Registration Successful!";
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -479,11 +483,20 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 
         if (result != null){
             switch (result) {
+                case "Registration Successful":
+                    try {
+                        authenticateJSON(userJsonString);
+//                        Toast.makeText(mContext, "User Authentication Successful", Toast.LENGTH_LONG).show();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.w(LOG_TAG, "Authentication Failed!!! " + userJsonString);
+                    }
+
+                    break;
                 case "Login Successful":
                     try {
                         authenticateJSON(userJsonString);
                         Toast.makeText(mContext, "User Authentication Successful", Toast.LENGTH_LONG).show();
-                        Log.w(LOG_TAG, "onPostExecute Authentication Successful!!! " + userJsonString);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         Log.w(LOG_TAG, "Authentication Failed!!! " + userJsonString);
@@ -500,6 +513,9 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                         Log.w(LOG_TAG, "Error Retrieving vehicleJsonString" + vehicleJsonString);
                     }
                     break;
+                case "Post Transaction success":
+                    Log.w(LOG_TAG, "Post Transaction success" + vehicleJsonString);
+                    break;
                 default:
                     Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
                     break;
@@ -513,6 +529,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 
 
     private void authenticateJSON(String userJsonString) throws JSONException {
+        Log.w(LOG_TAG, "authenticateJSON " + userJsonString);
 
         final String SERVER_RESPONSE = "server_response";
 
@@ -533,7 +550,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 
                 switch (code) {
                     case "reg_true":
-                        showDialog("Registration Successful", message, code);
+//                        showDialog("Registration Successful", message, code);
                         activity.startActivity(new Intent(activity, LoginActivity.class)
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)

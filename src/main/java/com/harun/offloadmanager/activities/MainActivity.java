@@ -77,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
                         .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                         .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
             }
-
         }
     }
 
@@ -145,7 +144,6 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
     }
 
     private void addVehiclesHistoryFragment(long calMilliTime, long dayNext) {
-        //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
         Log.w(LOG_TAG, "addVehiclesHistoryFragment " + calMilliTime + ": " + dayNext);
         Bundle args = new Bundle();
         args.putLong(Constants.CALENDAR_DAY, calMilliTime);
@@ -174,17 +172,18 @@ public class MainActivity extends AppCompatActivity implements VehiclesFragment.
         vehiclesFragment.setArguments(args);
 
         final FragmentManager fragmentManager = getSupportFragmentManager();
-        final android.support.v4.app.Fragment fragment= fragmentManager.findFragmentById(R.id.vehicle_fragment_container);
+        final android.support.v4.app.Fragment fragment = fragmentManager.findFragmentById(R.id.vehicle_fragment_container);
 
         if (fragment == null) {
             Log.w(LOG_TAG, "addVehiclesFragment without fragment Vehicles " + fragment);
             fragmentManager.beginTransaction()
                     .add(R.id.vehicle_fragment_container, vehiclesFragment)
                     .commitAllowingStateLoss();
-        }else {
-            Log.w(LOG_TAG, "addVehiclesFragment with fragment " + fragment);
+        } else {
+            Log.w(LOG_TAG, "replace with fragment " + fragment);
             fragmentManager.beginTransaction()
                     .replace(R.id.vehicle_fragment_container, vehiclesFragment)
+                    .addToBackStack(null)
                     .commitAllowingStateLoss();
         }
         setSupportActionBar(Constants.toolbar);

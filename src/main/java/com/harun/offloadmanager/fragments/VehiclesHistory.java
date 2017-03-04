@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -38,6 +39,7 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
     private Cursor cursor2 = null;
     double dailyVehicleCollection = 0;
     double dailyVehicleExpense = 0;
+    double vehicleBalance;
 
     private static final String SELECTED_KEY = "selected_position";
 
@@ -52,13 +54,14 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
     public TextView headerVehicleCollectionView;
     public TextView headerVehicleExpenseView;
     public TextView headerVehicleDifferenceView;
+    public CardView headerCardView;
 
     View emptyView;
 
-    double collection = 0;
-    double expense = 0;
-    String vehicleReg = "";
-
+    String listenerTag;
+    public double collection = 0;
+    public double expense = 0;
+    public String vehicleReg = "";
 
     public VehiclesHistory() {
         // Required empty public constructor
@@ -92,11 +95,23 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_vehicles_history, container, false);
 
+        headerCardView = (CardView) rootView.findViewById(R.id.header_vehicles_history_cardView);
         headerVehicleDateView = (TextView) rootView.findViewById(R.id.item_history_vehicles_header_date_text_view);
         headerVehicleCollectionView = (TextView) rootView.findViewById(R.id.item_history_vehicles_header_collection_text_view);
         headerVehicleExpenseView = (TextView) rootView.findViewById(R.id.item_history_vehicles_header_expense_text_view);
         headerVehicleDifferenceView = (TextView) rootView.findViewById(R.id.item_history_vehicles_header_profit_text_view);
 
+        headerCardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String officeKey = "Office";
+                int dailyOfficeCollection = (int) vehicleBalance;
+
+                Uri summaryUri = OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(officeKey, dailyOfficeCollection, 0);//vehicleBalance, office expenses.
+                ((VehiclesFragment.OnFragmentInteractionListener) getActivity()).onFragmentInteraction(summaryUri, calMilliTime);
+                Log.w(LOG_TAG, "onCreateView " + summaryUri);
+            }
+        });
 
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
@@ -107,9 +122,18 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setHasFixedSize(true);
 
-        mVehiclesHistoryAdapter = new VehiclesHistoryAdapter(getActivity(), emptyView);
-        mRecyclerView.setAdapter(mVehiclesHistoryAdapter);
+        mVehiclesHistoryAdapter = new VehiclesHistoryAdapter(getActivity(), new VehiclesHistoryAdapter.VehiclesHistoryAdapterOnClickHandler() {
+            @Override
+            public void onClick(Uri uri, VehiclesHistoryAdapter.ViewHolder vh) {
+                listenerTag = "listItemSelected";
+                ((VehiclesFragment.OnFragmentInteractionListener) getActivity()).onFragmentInteraction(uri, calMilliTime);
+                mPosition = vh.getAdapterPosition();
 
+                Log.w(LOG_TAG, "onCreateView " + uri);
+                Log.w(LOG_TAG, "onCreateView: " + vehicleReg +"--"+collection+"--"+expense);
+            }
+        }, collection, expense, emptyView);
+        mRecyclerView.setAdapter(mVehiclesHistoryAdapter);
 
         return rootView;
     }
@@ -121,7 +145,6 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
         for (int aLoaderArray : loaderArray) {
             getLoaderManager().initLoader(aLoaderArray, null, this);
         }
-
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -151,8 +174,7 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         null
                 );
 
-            }
-            case EXPENSE_LOADER: {
+            }case EXPENSE_LOADER: {
                 Uri expenseForVehicleWithDateUri = OffloadContract.TransactionEntry.buildVehicleWithDateAndType
                         (calMilliTime, dayNext, EXPENSE_LOADER);
 
@@ -169,20 +191,18 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         null,
                         null
                 );
-
             }
-
         }
         return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        double dailyDifference = 0.00;
 
         if (data != null && data.moveToFirst()) {
             switch (loader.getId()) {
-                case COLLECTION_LOADER: {
+                case COLLECTION_LOADER:
+                    Log.w(LOG_TAG, "COLLECTION_LOADER: " + COLLECTION_LOADER + "," + data.getCount());
 
                     cursor1 = data;
 
@@ -194,8 +214,8 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                     joinCursors();
 
                     break;
-                }
                 case EXPENSE_LOADER: {
+                    Log.w(LOG_TAG, "EXPENSE_LOADER: " + EXPENSE_LOADER + ": "+data.getCount());
 
                     cursor2 = data;
 
@@ -208,16 +228,14 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
 
                     break;
                 }
-
                 default:
-
             }
 
-            dailyDifference = (dailyVehicleCollection - dailyVehicleExpense);
+            vehicleBalance = (dailyVehicleCollection - dailyVehicleExpense);
 
             String formattedCollection = DateHelper.getFormattedCurrency(getContext(), dailyVehicleCollection);
             String formattedExpense = DateHelper.getFormattedCurrencyExpense(getContext(), dailyVehicleExpense);
-            String formattedDifference = DateHelper.getFormattedCurrency(getContext(), dailyDifference);
+            String formattedDifference = DateHelper.getFormattedCurrency(getContext(), vehicleBalance);
 
             headerVehicleDateView.setText(DateHelper.getFormattedDayString(calMilliTime));
             headerVehicleExpenseView.setText(formattedExpense);
@@ -288,13 +306,13 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                         matrixCursor.addRow(new String[]{vehicleReg, Double.toString(expense), Double.toString(collection)});
                        break;
                 }
+                if (mVehiclesHistoryAdapter != null && matrixCursor != null) {
+                    mVehiclesHistoryAdapter.swapCursor(matrixCursor);
+                    mVehiclesHistoryAdapter.notifyDataSetChanged();
+                    Log.w(LOG_TAG, "EXPENSE_LOADER:  " + matrixCursor.getCount());
+                }
             }
 
-            if (mVehiclesHistoryAdapter != null && matrixCursor != null) {
-                mVehiclesHistoryAdapter.swapCursor(matrixCursor);
-                mVehiclesHistoryAdapter.notifyDataSetChanged();
-                Log.w(LOG_TAG, "EXPENSE_LOADER: " + matrixCursor.getCount());
-            }
         }
     }
 

@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "567821722050",
+    "firebase_url": "https://offloadmanager.firebaseio.com",
+    "project_id": "offloadmanager",
+    "storage_bucket": "offloadmanager.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:567821722050:android:da947663f623d8a0",
+        "android_client_info": {
+          "package_name": "com.harun.offloadmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "567821722050-oqjvd70lvn4029tbme4ug4f38i0mujjb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqvaoRmx0Qorlzbbg0rf2WLoKb0h0Xu6I"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -15,7 +15,7 @@ import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.fragments.DetailsFragment;
 import com.harun.offloadmanager.fragments.TransactionsFragment;
 
-public class DetailsActivity extends AppCompatActivity{
+public class DetailsActivity extends AppCompatActivity {
     public static final String LOG_TAG = DetailsActivity.class.getSimpleName();
     //From mainActivity
     Uri mUri;
@@ -45,13 +45,14 @@ public class DetailsActivity extends AppCompatActivity{
         args.putParcelable(Constants.DETAIL_URI, intent.getData());
         args.putLong(Constants.CURRENT_DAY, dateTime);
 
-        Log.w(LOG_TAG, "getDataFromMainActivity "+ args +"---"+ dateTime);
+        Log.w(LOG_TAG, "getDataFromMainActivity " + args + "---" + dateTime);
 
         fragmentToAdd();
 
     }
 
-    private void fragmentToAdd(){
+    private void fragmentToAdd() {
+        //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
 
         if (args != null) {
             mUri = args.getParcelable(Constants.DETAIL_URI);
@@ -68,7 +69,6 @@ public class DetailsActivity extends AppCompatActivity{
     }
 
     private void addDetailsFragment(Uri uri) {
-        //TODO: Learn on use of 'putParcelable' for URI (Sunshine detail activity)
         Log.w(LOG_TAG, "addDetailsFragment " + uri);
 
 

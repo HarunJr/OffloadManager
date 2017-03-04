@@ -134,7 +134,7 @@ public class NumPad {
 
                 if (edittext.equals(incomeEditText)){
                     Log.w(LOG_TAG, "position:" + position +" "+ edittext);
-                    new IncomeFragment().sendCollectionData(edittext);
+                    new IncomeFragment().clickCollectionButton(edittext);
 
                 }else if (edittext.equals(expenseEditText)){
                     Log.w(LOG_TAG, "position:" + position +" "+ edittext);
@@ -146,7 +146,7 @@ public class NumPad {
 //                switch (edittext){
 //                    case incomeEditText: {
 //                        Log.w(LOG_TAG, "position:" + position +" "+ edittext);
-//                        new IncomeFragment().sendCollectionData(edittext);
+//                        new IncomeFragment().clickCollectionButton(edittext);
 //                    }
 //                    case expenseEditText: {
 //                        Log.w(LOG_TAG, "position:" + position +" "+ edittext);

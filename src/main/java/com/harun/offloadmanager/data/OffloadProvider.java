@@ -297,16 +297,18 @@ public class OffloadProvider extends ContentProvider {
             Log.d(LOG_TAG, "Type == 0: " + selection + " : " + type + "\n" + Arrays.toString(projection));
         }
 
-        Log.d(LOG_TAG, "ALL_VEHICLES_WITH_TRANSACTION_AND_DATE_CODE: " + selection + " : " + Arrays.toString(selectionArgs));
-        return sVehicleWithTransactionQueryBuilder.query(
+        Cursor cursor = sVehicleWithTransactionQueryBuilder.query(
                 mOpenHelper.getReadableDatabase(),
                 projection,
                 selection,
                 selectionArgs,
                 groupBy,
                 null,
-                sortOrder
-        );
+                sortOrder);
+        Log.d(LOG_TAG, "ALL_VEHICLES_WITH_TRANSACTION_AND_DATE_CODE: \n" + selection + "\n : "
+                + Arrays.toString(selectionArgs)+"\n"+ cursor.getCount());
+
+        return cursor;
     }
 
     //Retrieve all Transaction items from the database
