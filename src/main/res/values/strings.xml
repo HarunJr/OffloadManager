@@ -53,5 +53,8 @@
     <string name="hint_name">Full Names</string>
     <string name="hint_phone_no">(+254) 70000000</string>
     <string name="daily_summary_label">Daily Summary</string>
+    <string name="hint_company_name">Company Ltd</string>
+    <string name="hint_company_role">Role e.g Conductor</string>
+    <string name="add_user_label">Add User</string>
 
 </resources>

@@ -30,11 +30,13 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
     private static final int VIEW_TYPE_VEHICLES = 1;
 
     final private Context mContext;
+    private String date;
 
-    public VehiclesAdapter(Context context, VehiclesAdapterOnClickHandler mClickHandler, View emptyView) {
+    public VehiclesAdapter(Context context, VehiclesAdapterOnClickHandler mClickHandler, View emptyView, String date) {
         this.mClickHandler = mClickHandler;
-        mEmptyView = emptyView;
-        mContext = context;
+        this.mEmptyView = emptyView;
+        this.mContext = context;
+        this.date = date;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -66,10 +68,12 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
             mCursor.moveToPosition(adapterPosition);
+            int vehicleId = mCursor.getInt(VehiclesFragment.COL_VEHICLE_ID);
             String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
             int dailyTotalCollection = mCursor.getInt(VehiclesFragment.COL_VEHICLE_COLLECTION);
             int dailyTotalExpense = mCursor.getInt(VehiclesFragment.COL_VEHICLE_EXPENSE);
-            mClickHandler.onClick(OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(vehicleReg, dailyTotalCollection, dailyTotalExpense), this);
+            Log.w(LOG_TAG, "vehicleId: "+vehicleId);
+            mClickHandler.onClick(OffloadContract.VehicleEntry.buildTransactionWithVehicleId(vehicleId,vehicleReg, dailyTotalCollection, dailyTotalExpense, date), this);
         }
     }
 
@@ -84,40 +88,36 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
 
 //        ViewHolder viewHolder = new ViewHolder(view);
 //        view.setTag(viewHolder);
-
               return new ViewHolder(view);
-
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         mCursor.moveToPosition(position);
-        Log.w(LOG_TAG, "onBindViewHolder: "+mCursor.getCount()+", "+position+ " vehicle:"+ mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION));
-
         // Read values amount from cursor
 //        String dateTimeString = mCursor.getString(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
-        long dateTimeMillis = mCursor.getLong(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
+        String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
         double amount = mCursor.getDouble(VehiclesFragment.COL_VEHICLE_COLLECTION);
         double expense = mCursor.getDouble(VehiclesFragment.COL_VEHICLE_EXPENSE);
-        String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
+        long dateTimeMillis = mCursor.getLong(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
+        Log.w(LOG_TAG, "onBindViewHolder: " +vehicleReg+">>"+ amount + ">>" + expense + ">>"+dateTimeMillis);
 
-        String dayTime = DateHelper.getFormattedTimeString(dateTimeMillis);
-        String day = DateHelper.getFormattedDayString(dateTimeMillis);
+        String dayTime = DateHelper.getFormattedDateFromEpoch(dateTimeMillis);
         String formattedAmount = Utilities.getFormattedCurrency(mContext, amount);
-        String formattedExpense = Utilities.getFormattedCurrencyExpense(mContext, expense);
+        String formattedExpense = Utilities.getFormattedCurrency(mContext, expense);
+        Log.w(LOG_TAG, "onBindViewHolder2: " +vehicleReg+">>"+ amount + ">>" + expense + ">>"+dayTime);
 
         // Find TextView and set formatted date on it
         holder.vehicleView.setText(vehicleReg);
         holder.amountView.setText(formattedAmount);
         holder.expenseView.setText(formattedExpense);
         holder.dateView.setText(dayTime);
-
     }
 
     @Override
     public int getItemCount() {
         if (null == mCursor) return 0;
-        Log.w(LOG_TAG, "swapCursor: "+mCursor.getCount());
+        Log.w(LOG_TAG, "getItemCount: "+mCursor.getCount());
         return mCursor.getCount();
     }
 
@@ -138,7 +138,6 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.ViewHo
         Log.w(LOG_TAG, "getCursor: "+mCursor.getCount());
         return mCursor;
     }
-
 
 //    @Override
 //    public View newView(Context context, Cursor cursor, ViewGroup parent) {

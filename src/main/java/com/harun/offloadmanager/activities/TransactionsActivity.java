@@ -1,32 +1,38 @@
 package com.harun.offloadmanager.activities;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.widget.EditText;
 
+import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.data.LocalStore;
+import com.harun.offloadmanager.fragments.CollectionFragment;
 import com.harun.offloadmanager.fragments.DialogInputFragment;
 import com.harun.offloadmanager.fragments.ExpenseFragment;
-import com.harun.offloadmanager.fragments.IncomeFragment;
 import com.harun.offloadmanager.fragments.TransactionsFragment;
 import com.harun.offloadmanager.models.Transaction;
-import com.harun.offloadmanager.tasks.ServerRequest;
+import com.harun.offloadmanager.service.TransactionServices;
 
-public class TransactionsActivity extends AppCompatActivity implements IncomeFragment.OnClickCollectionListener,
+import static com.harun.offloadmanager.activities.SplashScreenActivity.AUTH_TOKEN;
+
+public class TransactionsActivity extends BaseActivity implements CollectionFragment.OnClickCollectionListener,
         ExpenseFragment.OnSendExpenseListener, DialogInputFragment.OnSendDescriptionListener {
     private static final String LOG_TAG = TransactionsActivity.class.getSimpleName();
+    public static final String VEHICLE_ID = "_id";
     public static final String VEHICLE_REG = "vehicle_reg";
     private Transaction transaction;
 
+    int vehicleId;
     String vehicleReg;
 
     @Override
@@ -42,7 +48,9 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
     }
 
     private void getDataFromDetailsActivity() {
+        vehicleId = getIntent().getIntExtra(VEHICLE_ID, 0);
         vehicleReg = getIntent().getStringExtra(VEHICLE_REG);
+        Log.w(LOG_TAG, "getDataFromDetailsActivity: " +vehicleId);
     }
 
     private void setToolBar() {
@@ -72,46 +80,75 @@ public class TransactionsActivity extends AppCompatActivity implements IncomeFra
     }
 
     @Override
-    public void onCollectionButtonClicked(String reg, String method, int collection, int type, String description, EditText mCollectionInput) {
-        Log.w(LOG_TAG, "onCollectionButtonClicked: " + method);
-        String stringCollection = String.valueOf(collection);
+    public void onCollectionButtonClicked(String reg, double collection, int type, String description, EditText mCollectionInput) {
         String stringType = String.valueOf(type);
-        String dateTime = String.valueOf(System.currentTimeMillis());
+        long dateTime = Constants.dateMilli;
+        int sync = 1;//Not Synced
+        Log.w(LOG_TAG, "vehicleId: " +vehicleId);
 
-        transaction = new Transaction(vehicleReg, stringCollection, stringType, description, dateTime);
+        //TODO: Use dateTime when offline NOT online
+        transaction = new Transaction(vehicleId, collection, stringType, description, dateTime, sync);
+        Log.w(LOG_TAG, "onCollectionButtonClicked: " +transaction.getVehicle_id()+"-"+ collection);
 
         LocalStore transactionStore = new LocalStore(this);
-        transactionStore.storeTransactionData(transaction);
+        AUTH_TOKEN = transactionStore.getToken();
 
+        if (isNetworkAvailable()){
+            bus.post(new TransactionServices.TransactionsServerRequest(AUTH_TOKEN, transaction));
 
+        }else {
+
+            //TODO:GET SUM of transactions for today and add to vehicles table
+            transactionStore.storeTransactionData(transaction);
+        }
 //        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(reg));
-        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+//        startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
 
     @Override
-    public void onExpenseButtonClicked(String mVehicleReg, String method, int expense, int type) {
+    public void onExpenseButtonClicked(String mVehicleReg, String method, double expense, int type) {
 
         DialogInputFragment dialogInputFragment = DialogInputFragment.newInstance(vehicleReg, expense, type);
         dialogInputFragment.show(getSupportFragmentManager(), "DialogInputFragment");
     }
 
     @Override
-    public void onPositiveButtonClicked(String vehicleReg, int type, int expense, String description) {
+    public void onPositiveButtonClicked(String vehicleReg, int type, double expense, String description) {
         String method = "add_transaction";
         String stringExpense = String.valueOf(expense);
         String stringType = String.valueOf(type);
 //        String description = "This is an Expense";
-        String dateTime = String.valueOf(System.currentTimeMillis());
+        long dateTime = System.currentTimeMillis();
+        int sync = 1;//Not Synced
 
-        ServerRequest serverRequest = new ServerRequest(this);
-        serverRequest.execute(method, vehicleReg, stringExpense, stringType, description, dateTime);
-        Log.w(LOG_TAG, "create button clicked " + expense + ": " + description);
+        transaction = new Transaction(vehicleId, expense, stringType, description, dateTime, sync);
+        LocalStore transactionStore = new LocalStore(this);
+        AUTH_TOKEN = transactionStore.getToken();
+
+        if (isNetworkAvailable()){
+            bus.post(new TransactionServices.TransactionsServerRequest(AUTH_TOKEN, transaction));
+
+        }else {
+
+            //TODO:GET SUM of transactions for today and add to vehicles table
+            transactionStore.storeTransactionData(transaction);
+        }
+//        bus.post(new TransactionServices.TransactionsServerRequest(AUTH_TOKEN, transaction));
+//        ServerRequest serverRequest = new ServerRequest(this);
+//        serverRequest.execute(method, vehicleReg, stringExpense, stringType, description, dateTime);
+        Log.w(LOG_TAG, "onExpenseButtonClicked " + expense + ": " + description);
 
 //        startDetailActivity(OffloadContract.VehicleEntry.buildVehicleRegistration(titleKey));
-        startActivity(new Intent(getApplicationContext(), MainActivity.class));
-
+//        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+//        bus.post(new TransactionServices.TransactionsServerRequest("transact.php", transactionsModel));
     }
 
+    public boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) application.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        Log.w(LOG_TAG, "isNetworkAvailable" + networkInfo);
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
+    }
 
 //    @Override
 //    public void respond(String data) {

@@ -23,10 +23,10 @@ import com.harun.offloadmanager.helper.NumPad;
 /**
  * Simple Fragment containing the NumberPad and the EditText
  */
-public class IncomeFragment extends Fragment {
-    private static final String LOG_TAG = IncomeFragment.class.getSimpleName();
+public class CollectionFragment extends Fragment {
+    private static final String LOG_TAG = CollectionFragment.class.getSimpleName();
 
-    private static final String TYPE = "type";
+    private static final String TYPE = "company";
     private static final String VEHICLE_REG = "transactionKey";
 
     private static int mType;
@@ -39,11 +39,11 @@ public class IncomeFragment extends Fragment {
 
     private static Context mContext;
 
-    public IncomeFragment() {
+    public CollectionFragment() {
         // Required empty public constructor
     }
 
-    public static IncomeFragment newInstance(Context context, int position, String vehicleReg, CoordinatorLayout coordinatorLayout, KeyboardView keyboardView, NumPad numPad) {
+    public static CollectionFragment newInstance(Context context, int position, String vehicleReg, CoordinatorLayout coordinatorLayout, KeyboardView keyboardView, NumPad numPad) {
         mCoordinatorLayout = coordinatorLayout;
         mKeyboardView = keyboardView;
         mNumPad = numPad;
@@ -52,7 +52,7 @@ public class IncomeFragment extends Fragment {
         mVehicleReg = vehicleReg;
         mType = position;
 
-        IncomeFragment fragment = new IncomeFragment();
+        CollectionFragment fragment = new CollectionFragment();
         Bundle args = new Bundle();
         args.putInt(TYPE, position);
         args.putString(VEHICLE_REG, vehicleReg);
@@ -118,8 +118,8 @@ public class IncomeFragment extends Fragment {
             long dateTime = System.currentTimeMillis();
             String day = DateHelper.getFormattedDayString(dateTime);
 
-            final String method = "add_transaction";
-            final int collection = Integer.parseInt(mCollectionInput.getText().toString());
+//            final String method = "add_transaction";
+            final double collection = Double.parseDouble(mCollectionInput.getText().toString());
             final int type = Integer.parseInt(String.valueOf(mType));
             final String description = day;
 
@@ -133,7 +133,7 @@ public class IncomeFragment extends Fragment {
                         case Snackbar.Callback.DISMISS_EVENT_SWIPE:
                             Log.w(LOG_TAG, "DISMISS_EVENT_SWIPE: " + mVehicleReg +", "+collection);
                             ((OnClickCollectionListener) mContext).onCollectionButtonClicked(
-                                    mVehicleReg, method, collection, type, description, mCollectionInput);
+                                    mVehicleReg, collection, type, description, mCollectionInput);
                             break;
                         case Snackbar.Callback.DISMISS_EVENT_ACTION:
                             Log.w(LOG_TAG, "DISMISS_EVENT_ACTION: " + mContext);
@@ -145,7 +145,7 @@ public class IncomeFragment extends Fragment {
                             Toast.makeText(mContext, "TIME OUT! Sending " + collection + " to server", Toast.LENGTH_LONG).show();
 
                             ((OnClickCollectionListener) mContext).onCollectionButtonClicked(
-                                    mVehicleReg, method, collection, type, description, mCollectionInput);
+                                    mVehicleReg, collection, type, description, mCollectionInput);
                             break;
                     }
                 }
@@ -168,9 +168,9 @@ public class IncomeFragment extends Fragment {
     }
 
     public interface OnClickCollectionListener {
-        // TODO: Update argument type and name
+        // TODO: Update argument company and name
 
-        void onCollectionButtonClicked(String vehicleReg, String method, int collection, int type, String description, EditText mCollectionInput);
+        void onCollectionButtonClicked(String vehicleReg, double collection, int type, String description, EditText mCollectionInput);
     }
 }
 

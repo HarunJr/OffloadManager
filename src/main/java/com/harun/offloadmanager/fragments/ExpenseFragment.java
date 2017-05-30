@@ -26,7 +26,7 @@ import com.harun.offloadmanager.R;
 public class ExpenseFragment extends Fragment {
     private static final String LOG_TAG = ExpenseFragment.class.getSimpleName();
 
-    private static final String TYPE = "type";
+    private static final String TYPE = "company";
     private static final String VEHICLE_REG = "transactionKey";
     private static int mType;
     private static String mVehicleReg;
@@ -116,7 +116,7 @@ public class ExpenseFragment extends Fragment {
 
         if (mExpenseInput.getText().toString().trim().length() != 0){
             String method = "add_transaction";
-            int expense = Integer.parseInt(mExpenseInput.getText().toString());
+            int expense = -Integer.parseInt(mExpenseInput.getText().toString());
             int type = Integer.parseInt(String.valueOf(mType));
 
             mExpenseInput.setText("");
@@ -132,8 +132,8 @@ public class ExpenseFragment extends Fragment {
     }
 
     public interface OnSendExpenseListener {
-        // TODO: Update argument type and name
-        void onExpenseButtonClicked(String mVehicleReg, String method, int expense, int type);
+        // TODO: Update argument company and name
+        void onExpenseButtonClicked(String mVehicleReg, String method, double expense, int type);
     }
 
 }

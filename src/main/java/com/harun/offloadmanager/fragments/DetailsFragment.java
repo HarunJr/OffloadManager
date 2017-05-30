@@ -37,13 +37,13 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     public TextView headerExpenseView;
     public TextView headerDifferenceView;
     long dateTime;
-    protected static final String[] TRANSACTION_COLUMNS = {
+    public static final String[] TRANSACTION_COLUMNS = {
             OffloadContract.TransactionEntry.TABLE_NAME + "." + OffloadContract.TransactionEntry.COLUMN_TRANSACTION_ID,
             OffloadContract.TransactionEntry.COLUMN_VEHICLE_KEY,
             OffloadContract.TransactionEntry.COLUMN_AMOUNT,
             OffloadContract.TransactionEntry.COLUMN_TYPE,
             OffloadContract.TransactionEntry.COLUMN_DESCRIPTION,
-            OffloadContract.TransactionEntry.COLUMN_DATE_TIME,
+            OffloadContract.TransactionEntry.TIMESTAMP,
     };
 
     public static final int COL_TRANSACTION_ID = 0;
@@ -74,9 +74,8 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(Constants.DETAIL_URI);
-            dateTime = getArguments().getLong(Constants.CURRENT_DAY);
 
-            Log.w(LOG_TAG, "onCreate " +dateTime+" "+ mUri);
+            Log.w(LOG_TAG, "onCreate " + mUri);
         }
     }
 
@@ -120,10 +119,15 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        transactionKey = OffloadContract.VehicleEntry.getVehicleRegistrationFromUri(mUri);
-        Uri transactionForVehicleRegUri = OffloadContract.TransactionEntry.buildKeyTransactionWithDateUri(transactionKey, dateTime);
-        String sortOrder = OffloadContract.TransactionEntry.COLUMN_DATE_TIME + " DESC";
-        Log.w(LOG_TAG, "onCreateLoader: " + transactionKey + " " +dateTime+" "+ transactionForVehicleRegUri);
+        int vehicleKeyFromUri = OffloadContract.VehicleEntry.getVehicleIdFromUri(mUri);
+        long dayInMilli = (24 * 60 * 60) * 1000;
+        long tomorrow = Constants.dateMilli + dayInMilli;
+        String todayDate = OffloadContract.VehicleEntry.getDateFromUri(mUri)+ " 03:00:00";
+        final String endDate = DateHelper.getFormattedDateHyphenString(tomorrow) + " 03:00:00";
+
+        Uri transactionForVehicleRegUri = OffloadContract.TransactionEntry.buildKeyTransactionWithDateUri(vehicleKeyFromUri, todayDate, endDate);
+        String sortOrder = OffloadContract.TransactionEntry.TIMESTAMP + " DESC";
+        Log.w(LOG_TAG, "onCreateLoader: " + vehicleKeyFromUri + " " +dateTime+" "+ transactionForVehicleRegUri);
 
         if (null != mUri) {
 
@@ -152,12 +156,14 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                     dailyTotalExpense += data.getInt(DetailsFragment.COL_AMOUNT);
                 }while (data.moveToNext());
             }
-            double difference = dailyTotalCollection - dailyTotalExpense;
+
+            //Add to get balance because 'dailyTotalExpense' is negative(-)
+            double balance = dailyTotalCollection + dailyTotalExpense;
 
             String day = DateHelper.getFormattedDayString(dateTime);
             String formattedCollection = DateHelper.getFormattedCurrency(getContext(), dailyTotalCollection);
-            String formattedExpense = DateHelper.getFormattedCurrencyExpense(getContext(), dailyTotalExpense);
-            String formattedDifference = DateHelper.getFormattedCurrency(getContext(), difference);
+            String formattedExpense = DateHelper.getFormattedCurrency(getContext(), dailyTotalExpense);
+            String formattedDifference = DateHelper.getFormattedCurrency(getContext(), balance);
 
             headerDateView.setText(day);
             headerCollectionView.setText(formattedCollection);
@@ -178,7 +184,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     //    // TODO: Rename method, update argument and hook method into UI event
 //    public void onButtonPressed(Uri uri) {
 //        if (mListener != null) {
-//            mListener.onFragmentInteraction(uri);
+//            mListener.onVehicleFragmentInteraction(uri);
 //        }
 //    }
 
@@ -200,7 +206,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
 //    }
 
 //    public interface OnFabPressedListener {
-//        // TODO: Update argument type and name
+//        // TODO: Update argument company and name
 //        void onFabPressed(String transactionKey);
 //    }
 }

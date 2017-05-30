@@ -14,7 +14,7 @@ import android.widget.EditText;
 
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.fragments.ExpenseFragment;
-import com.harun.offloadmanager.fragments.IncomeFragment;
+import com.harun.offloadmanager.fragments.CollectionFragment;
 
 /**
  * Created by HARUN on 7/4/2016.
@@ -92,10 +92,10 @@ public class NumPad {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 EditText edittext = (EditText) v;
-                int inType = edittext.getInputType();       // Backup the input type
+                int inType = edittext.getInputType();       // Backup the input company
                 edittext.setInputType(InputType.TYPE_NULL); // Disable standard keyboard
                 edittext.onTouchEvent(event);               // Call native handler
-                edittext.setInputType(inType);              // Restore input type
+                edittext.setInputType(inType);              // Restore input company
                 return true; // Consume touch event
             }
         });
@@ -134,7 +134,7 @@ public class NumPad {
 
                 if (edittext.equals(incomeEditText)){
                     Log.w(LOG_TAG, "position:" + position +" "+ edittext);
-                    new IncomeFragment().clickCollectionButton(edittext);
+                    new CollectionFragment().clickCollectionButton(edittext);
 
                 }else if (edittext.equals(expenseEditText)){
                     Log.w(LOG_TAG, "position:" + position +" "+ edittext);

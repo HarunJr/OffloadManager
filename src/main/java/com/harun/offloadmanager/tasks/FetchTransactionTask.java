@@ -98,7 +98,7 @@ public class FetchTransactionTask extends AsyncTask<Void, Void, String> {
         final String TRANSACTION_ID = "id";
         final String VEHICLE_KEY = "vehicle_key";
         final String TRANSACTION_AMOUNT = "amount";
-        final String TYPE = "type";
+        final String TYPE = "company";
         final String DESCRIPTION = "description";
         final String TRANSACTION_DATE_TIME = "date_time";
 
@@ -154,7 +154,7 @@ public class FetchTransactionTask extends AsyncTask<Void, Void, String> {
         transactionValues.put(OffloadContract.TransactionEntry.COLUMN_AMOUNT, amount);
         transactionValues.put(OffloadContract.TransactionEntry.COLUMN_TYPE, type);
         transactionValues.put(OffloadContract.TransactionEntry.COLUMN_DESCRIPTION, description);
-        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_DATE_TIME, dateTime);
+        transactionValues.put(OffloadContract.TransactionEntry.TIMESTAMP, dateTime);
 
         //USE THIS for normal entries
 //        long vehicleRowId=db.insert(VehicleContract.VehicleEntry.TABLE_NAME,null, vehicleValues);

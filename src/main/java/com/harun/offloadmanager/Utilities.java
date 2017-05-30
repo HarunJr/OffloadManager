@@ -1,6 +1,11 @@
 package com.harun.offloadmanager;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.util.Log;
+
+import com.harun.offloadmanager.infrastructure.OffloadManagerApplication;
 
 /**
  * Created by HARUN on 5/13/2016.
@@ -35,4 +40,12 @@ public class Utilities {
     public static String getFormattedCurrencyExpense(Context context, double amount){
         return context.getString(R.string.format_expense, amount);
     }
+
+    public static boolean isNetworkAvailable(OffloadManagerApplication application) {
+        ConnectivityManager cm = (ConnectivityManager) application.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        Log.w(LOG_TAG, "isNetworkAvailable" + networkInfo);
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
+    }
+
 }

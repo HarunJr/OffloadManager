@@ -2,7 +2,6 @@ package com.harun.offloadmanager.fragments;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
@@ -19,7 +18,6 @@ import android.widget.TextView;
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.models.User;
-import com.harun.offloadmanager.tasks.ServerRequest;
 
 public class LoginFragment extends Fragment {
     public static final String LOG_TAG = LoginFragment.class.getSimpleName();
@@ -35,7 +33,7 @@ public class LoginFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+    private OnLoginFragmentInteractionListener mListener;
 
     public LoginFragment() {
         // Required empty public constructor
@@ -84,16 +82,18 @@ public class LoginFragment extends Fragment {
 
                 hideSoftKeyboard(etPhoneNo);
 
-                String phoneNumber = etPhoneNo.getText().toString();
-                String pass_code = etPassword.getText().toString();
+//                User user = new LocalStore(getContext()).getStoredUser();
+//                String phoneNumber = etPhoneNo.getText().toString();
+//                String email = etPhoneNo.getText().toString();
+//                String email = "admin@transit.gemilab.com";
+//                String pin = "secret";
+                String email = "hr@mail.com";
+                String pin = "1234";
 
-                User user = new User(phoneNumber, pass_code);
-
+                User user = new User(email, pin);
                 checkFields(user);
-
             }
         });
-
         tvRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -101,7 +101,6 @@ public class LoginFragment extends Fragment {
                 getFragmentManager().beginTransaction()
                         .replace(R.id.fragment_login, new RegisterFragment())
                         .commit();
-
             }
         });
 
@@ -111,13 +110,16 @@ public class LoginFragment extends Fragment {
     }
 
     private void checkFields(User user){
-        if (user.phoneNo.equals("") || user.pin.equals("")) {
-            showErrorMessage();
+        Log.w(LOG_TAG, "checkFields " + user.getEmail());
+        authenticate(user);
 
-        } else {
-
-            authenticate(user);
-        }
+//        if (user.getPhoneNo().equals("") || user.pin.equals("")) {
+//
+//            showErrorMessage();
+//        } else {
+//
+//            authenticate(user);
+//        }
     }
 
     private void showErrorMessage() {
@@ -137,7 +139,10 @@ public class LoginFragment extends Fragment {
 
     private void authenticate(User user) {
         String registerMethod = "login_user";
-        new ServerRequest(getActivity()).execute(registerMethod, user.phoneNo, user.pin);
+        Log.w(LOG_TAG, "register_link " + user.getEmail());
+        ((OnLoginFragmentInteractionListener) getActivity()).onLoginFragmentInteraction(user);
+
+//        new ServerRequest(getActivity()).execute(registerMethod, user.phoneNo, user.pin);
     }
 
     public void showSoftKeyboard(View view) {
@@ -160,8 +165,8 @@ public class LoginFragment extends Fragment {
         }
     }
 
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+    public interface OnLoginFragmentInteractionListener {
+        // TODO: Update argument company and name
+        void onLoginFragmentInteraction(User uri);
     }
 }

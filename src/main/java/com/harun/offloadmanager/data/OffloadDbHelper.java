@@ -31,11 +31,12 @@ public class OffloadDbHelper extends SQLiteOpenHelper {
         try {
             String SQL_CREATE_VEHICLE_TABLE = "CREATE TABLE "
                     + VehicleEntry.TABLE_NAME + " ("
+                    + VehicleEntry.COLUMN_VEHICLE_ID + " INTEGER NOT NULL, "
                     + VehicleEntry.COLUMN_VEHICLE_REGISTRATION + " TEXT PRIMARY KEY, "
-                    + VehicleEntry.COLUMN_VEHICLE_TOTAL_COLLECTION + " REAL NOT NULL, "
-                    + VehicleEntry.COLUMN_VEHICLE_TOTAL_EXPENSE + " REAL NOT NULL, "
-                    + VehicleEntry.COLUMN_VEHICLE_REGISTRATION_DATE + " INTEGER NOT NULL, "
-                    + VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME + " INTEGER NOT NULL, "
+                    + VehicleEntry.COLUMN_VEHICLE_TOTAL_COLLECTION + " REAL, "
+                    + VehicleEntry.COLUMN_VEHICLE_TOTAL_EXPENSE + " REAL, "
+                    + VehicleEntry.COLUMN_VEHICLE_REGISTRATION_DATE + " INTEGER, "
+                    + VehicleEntry.COLUMN_LAST_TRANSACTION_DATE_TIME + " INTEGER, "
 
                     + "UNIQUE (" + VehicleEntry.COLUMN_VEHICLE_REGISTRATION + ") ON CONFLICT REPLACE );";
 
@@ -44,9 +45,10 @@ public class OffloadDbHelper extends SQLiteOpenHelper {
                     + TransactionEntry.COLUMN_TRANSACTION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + TransactionEntry.COLUMN_VEHICLE_KEY + " INTEGER NOT NULL, "
                     + TransactionEntry.COLUMN_AMOUNT + " REAL NOT NULL, "
-                    + TransactionEntry.COLUMN_TYPE + " INTEGER NOT NULL, "
+                    + TransactionEntry.COLUMN_TYPE + " TEXT NOT NULL, "
                     + TransactionEntry.COLUMN_DESCRIPTION + " VARCHAR(255), "
-                    + TransactionEntry.COLUMN_DATE_TIME + " INTEGER NOT NULL, "
+                    + TransactionEntry.TIMESTAMP + " INTEGER NOT NULL, "
+                    + TransactionEntry.DATE_TIME + " TEXT NOT NULL, "
                     + TransactionEntry.COLUMN_SYNC + " INTEGER NOT NULL, "
                     + "FOREIGN KEY (" + TransactionEntry.COLUMN_VEHICLE_KEY + ") REFERENCES "
                     + VehicleEntry.TABLE_NAME + "(" + VehicleEntry.COLUMN_VEHICLE_REGISTRATION +

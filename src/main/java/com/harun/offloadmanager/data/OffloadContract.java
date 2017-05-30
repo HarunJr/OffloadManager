@@ -62,6 +62,7 @@ public class OffloadContract {
 
         public static final String TABLE_NAME = "vehicle";
 
+        public static final String COLUMN_VEHICLE_ID = "vehicleId";
         public static final String COLUMN_VEHICLE_REGISTRATION = "vehicleRegistration";
         public static final String COLUMN_VEHICLE_REGISTRATION_DATE = "signUpDate";
         public static final String COLUMN_VEHICLE_TOTAL_COLLECTION = "vehicleCollection";
@@ -73,29 +74,36 @@ public class OffloadContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildVehicleRegistration(String vehicleRegistration)
-        {
-            return CONTENT_URI.buildUpon().appendPath(vehicleRegistration).build();
-        }
-        public static Uri buildVehicleRegistrationWithTransactionsAndDate(String vehicleRegistration, int dailyTotalCollection, int dailyTotlaExpense)
+        public static Uri buildTransactionWithVehicleId(int vehicleId, String vehicleRegistration, int dailyTotalCollection, int dailyTotlaExpense, String date)
         {
             return CONTENT_URI.buildUpon()
+                    .appendPath(String.valueOf(vehicleId))
                     .appendPath(vehicleRegistration)
                     .appendPath(Long.toString(dailyTotalCollection))
-                    .appendPath(Long.toString(dailyTotlaExpense )).build();
+                    .appendPath(Long.toString(dailyTotlaExpense ))
+                    .appendPath(date)
+                    .build();
         }
 
-        public static String getVehicleRegistrationFromUri(Uri uri)
+        public static int getVehicleIdFromUri(Uri uri)
         {
-            return uri.getPathSegments().get(1);
+            return Integer.parseInt(uri.getPathSegments().get(1));
         }
-        public static String getDailyTotalCollectionFromUri(Uri uri)
+        public static String getVehicleRegistrationFromUri(Uri uri)
         {
             return uri.getPathSegments().get(2);
         }
-        public static String getDailyTotalExpenseFromUri(Uri uri)
+        public static String getDailyTotalCollectionFromUri(Uri uri)
         {
             return uri.getPathSegments().get(3);
+        }
+        public static String getDailyTotalExpenseFromUri(Uri uri)
+        {
+            return uri.getPathSegments().get(4);
+        }
+        public static String getDateFromUri(Uri uri)
+        {
+            return uri.getPathSegments().get(5);
         }
 
         public static Uri buildVehiclesWithTransactionsAndDate(long minDate, long maxDate)
@@ -131,7 +139,8 @@ public class OffloadContract {
         public static final String COLUMN_AMOUNT = "amount";
         public static final String COLUMN_TYPE = "type";
         public static final String COLUMN_DESCRIPTION = "description";
-        public static final String COLUMN_DATE_TIME = "transaction_date_time";
+        public static final String TIMESTAMP = "timestamp";
+        public static final String DATE_TIME = "date_time";
         public static final String COLUMN_SYNC = "sync";
 
         public static Uri buildTransactionUri(long id)
@@ -158,19 +167,21 @@ public class OffloadContract {
             return Long.parseLong(uri.getPathSegments().get(2));
         }
 
-        public static int getTypeFromUri(Uri uri)
-        {
-            return Integer.parseInt(uri.getPathSegments().get(3));
-        }
+//        public static int getTypeFromUri(Uri uri)
+//        {
+//            return Integer.parseInt(uri.getPathSegments().get(3));
+//        }
 
         /*
             Create URI with vehicle Reg appeded at end of URi
          */
-        public static Uri buildKeyTransactionWithDateUri(String vehicleReg, long dateTime)
+        public static Uri buildKeyTransactionWithDateUri(int vehicleId, String startDate, String endDate)
         {
             return CONTENT_URI.buildUpon()
-                    .appendPath(vehicleReg)
-                    .appendPath(Long.toString(dateTime))
+                    .appendPath(String.valueOf(vehicleId))
+                    .appendPath(startDate)
+                    .appendPath(endDate)
+//                    .appendPath(type)
                     .build();
         }
 
@@ -189,11 +200,18 @@ public class OffloadContract {
             return uri.getPathSegments().get(1);
         }
 
-
         public static String getStartDateFromUri(Uri uri)
         {
-            return uri.getQueryParameter(COLUMN_DATE_TIME);
+            return uri.getPathSegments().get(2);
         }
+        public static String getEndDateFromUri(Uri uri)
+        {
+            return uri.getPathSegments().get(3);
+        }
+//        public static String getTypeFromUri(Uri uri)
+//        {
+//            return uri.getPathSegments().get(4);
+//        }
 
         public static Uri buildSummaryWithDateAndType(long minDate, long maxDate, int collectionLoader, int expenseLoader) {
             return CONTENT_URI.buildUpon()

@@ -27,7 +27,6 @@
                 android:textColor="@android:color/white"
                 android:text="@string/header_label" />
 
-
             <TextView
                 android:id="@+id/item_summary_offload_view"
                 android:layout_width="wrap_content"
@@ -71,7 +70,7 @@
         android:id="@+id/rvSummary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/header_cardView"/>
+        android:layout_below="@id/header_summary_cardView"/>
 
     <!-- empty list -->
     <TextView

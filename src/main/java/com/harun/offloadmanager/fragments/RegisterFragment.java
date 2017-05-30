@@ -3,7 +3,6 @@ package com.harun.offloadmanager.fragments;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
@@ -21,14 +20,13 @@ import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.activities.LoginActivity;
 import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.models.User;
-import com.harun.offloadmanager.tasks.ServerRequest;
 
 public class RegisterFragment extends Fragment {
     public static final String LOG_TAG = RegisterFragment.class.getSimpleName();
     TextInputLayout passwordWrapper;
     TextInputLayout emailWrapper;
 
-    EditText etName, etPhoneNo, etEmail, etPassCode;
+    EditText etName, etPhoneNo, etEmail, etPassCode, etCompany;
     Button btnSignUp;
     TextView tvLoginLink;
 
@@ -72,6 +70,7 @@ public class RegisterFragment extends Fragment {
         etName = (EditText) rootView.findViewById(R.id.name_register);
         etPhoneNo = (EditText) rootView.findViewById(R.id.phone_register);
         etEmail = (EditText) rootView.findViewById(R.id.email_register);
+        etCompany = (EditText) rootView.findViewById(R.id.company);
         etPassCode = (EditText) rootView.findViewById(R.id.pin_register);
 
         btnSignUp = (Button) rootView.findViewById(R.id.button_register);
@@ -90,10 +89,10 @@ public class RegisterFragment extends Fragment {
                 String name = etName.getText().toString();
                 String phoneNumber = etPhoneNo.getText().toString();
                 String email = etEmail.getText().toString();
+                String company = etCompany.getText().toString();
                 String passCode = etPassCode.getText().toString();
-                String userType = "owner";
 
-                User user = new User(name, phoneNumber, email, passCode, userType);
+                User user = new User(name, phoneNumber, email, company, passCode);
 
                 if (email.equals("") || phoneNumber.equals("") || passCode.equals("")) {
 
@@ -109,7 +108,7 @@ public class RegisterFragment extends Fragment {
                     AlertDialog alertDialog = builder.create();
                     alertDialog.show();
                 } else {
-                    registerUser(user);
+                    ((OnRegistrationFragmentInteractionListener) getActivity()).onRegistrationFragmentInteraction(user);
 //                    startActivity(new Intent(getActivity(), MainActivity.class));
                 }
             }
@@ -123,7 +122,6 @@ public class RegisterFragment extends Fragment {
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                         .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
-
             }
         });
         return rootView;
@@ -147,17 +145,8 @@ public class RegisterFragment extends Fragment {
         }
     }
 
-    private void registerUser(User user) {
-        String registerMethod = "register_user";
-        LocalStore localStore = new LocalStore(getContext());
-        String token = localStore.getToken();
-        Log.w(LOG_TAG, "registerUser" + token);
-        new ServerRequest(getActivity()).execute(registerMethod, user.name, user.phoneNo, user.email, user.pin, user.type, token);
-
-    }
-
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+    public interface OnRegistrationFragmentInteractionListener {
+        // TODO: Update argument company and name
+        void onRegistrationFragmentInteraction(User user);
     }
 }

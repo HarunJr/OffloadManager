@@ -7,68 +7,71 @@
     android:orientation="vertical"
     tools:context=".fragments.DetailsFragment">
 
-    <android.support.v7.widget.CardView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        app:cardBackgroundColor="@color/colorPrimary"
-        android:id="@+id/header_cardView"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@color/colorPrimary">
 
-        <RelativeLayout
+        <TextView
+            android:id="@+id/item_header_date_text_view"
+            style="@style/TextAppearance.AppCompat.Small"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/item_header_date_text_view"
-                style="@style/TextAppearance.AppCompat.Small"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:padding="8dp"
-                android:textColor="@android:color/white"
-                android:text="@string/header_label" />
+            android:gravity="end"
+            android:padding="8dp"
+            android:textColor="@android:color/white"
+            android:text="@string/header_label" />
 
 
-            <TextView
-                android:id="@+id/item_header_collection_text_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_marginLeft="110dp"
-                android:layout_marginStart="110dp"
-                android:layout_below="@+id/item_header_date_text_view"
-                android:textColor="@android:color/white"
-                android:padding="8dp" />
+        <TextView
+            android:id="@+id/item_header_collection_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="110dp"
+            android:layout_marginStart="110dp"
+            android:layout_below="@+id/item_header_date_text_view"
+            android:textColor="@android:color/white"
+            android:padding="8dp" />
 
-            <TextView
-                android:id="@+id/item_header_expense_text_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_marginRight="110dp"
-                android:layout_marginEnd="110dp"
-                android:layout_below="@+id/item_header_date_text_view"
-                android:textColor="@android:color/white"
-                android:padding="8dp" />
+        <TextView
+            android:id="@+id/item_header_expense_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="110dp"
+            android:layout_marginEnd="110dp"
+            android:layout_below="@+id/item_header_date_text_view"
+            android:textColor="@android:color/white"
+            android:padding="8dp" />
 
-            <TextView
-                android:id="@+id/item_header_profit_text_view"
-                style="@style/LargeRobotoTextViewStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_below="@+id/item_header_collection_text_view"
-                android:textColor="@android:color/white"
-                android:padding="8dp" />
+        <TextView
+            android:id="@+id/item_header_profit_text_view"
+            style="@style/LargeRobotoTextViewStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_below="@+id/item_header_collection_text_view"
+            android:textColor="@android:color/white"
+            android:padding="8dp" />
 
 
-        </RelativeLayout>
+    </RelativeLayout>
 
-    </android.support.v7.widget.CardView>
+
+    <!--<android.support.v7.widget.CardView-->
+        <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--app:cardBackgroundColor="@color/colorPrimary"-->
+        <!--android:id="@+id/header_cardView"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:orientation="vertical">-->
+
+
+    <!--</android.support.v7.widget.CardView>-->
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvDetails"

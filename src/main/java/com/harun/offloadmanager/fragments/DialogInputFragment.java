@@ -26,24 +26,24 @@ public class DialogInputFragment extends DialogFragment {
 
     String vehicleReg;
     int type;
-    int expense;
+    double expense;
 
     private static Context mContext;
 
     private static final String VEHICLE_REG = "transactionKey";
     private static final String EXPENSE = "expense";
-    private static final String TYPE = "type";
+    private static final String TYPE = "company";
 
     public DialogInputFragment(){
         //Empty constructor
     }
 
-    public static DialogInputFragment newInstance( String vehicleReg, int expense, int type) {
+    public static DialogInputFragment newInstance(String vehicleReg, double expense, int type) {
         DialogInputFragment fragment = new DialogInputFragment();
         Bundle args = new Bundle();
 
         args.putString(VEHICLE_REG, vehicleReg);
-        args.putInt(EXPENSE, expense);
+        args.putDouble(EXPENSE, expense);
         args.putInt(TYPE, type);
 
         fragment.setArguments(args);
@@ -60,7 +60,7 @@ public class DialogInputFragment extends DialogFragment {
         mPositiveButton = (Button) rootView.findViewById(R.id.yes);
 
         vehicleReg = getArguments().getString(VEHICLE_REG);
-        expense = getArguments().getInt(EXPENSE);
+        expense = getArguments().getDouble(EXPENSE);
         type = getArguments().getInt(TYPE);
 
         mDescriptionView.setText(" What is the "+expense+" For?");
@@ -76,7 +76,7 @@ public class DialogInputFragment extends DialogFragment {
         return rootView;
     }
 
-    public void sendBackToActivity(String vehicleReg, int type, int expense, String description){
+    public void sendBackToActivity(String vehicleReg, int type, double expense, String description){
 
         ((OnSendDescriptionListener) getActivity()).onPositiveButtonClicked(vehicleReg, type, expense, description);
         Log.w(LOG_TAG, "sendBackToActivity " + expense + ": " + description);
@@ -85,7 +85,7 @@ public class DialogInputFragment extends DialogFragment {
     }
 
     public interface OnSendDescriptionListener {
-        void onPositiveButtonClicked(String vehicleReg, int type, int expense, String description);
+        void onPositiveButtonClicked(String vehicleReg, int type, double expense, String description);
     }
 
 

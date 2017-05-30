@@ -13,7 +13,6 @@ import android.widget.TextView;
 
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.Utilities;
-import com.harun.offloadmanager.data.OffloadContract;
 import com.harun.offloadmanager.fragments.VehiclesFragment;
 import com.harun.offloadmanager.sync.OffloadSyncAdapter;
 
@@ -59,7 +58,7 @@ public class VehiclesHistoryAdapter extends RecyclerView.Adapter<VehiclesHistory
 
         // Read values amount from cursor
 //        String dateTimeString = mCursor.getString(VehiclesFragment.COL_LAST_TRANSACTION_DATE_TIME);
-//        int type = mCursor.getInt(DetailsFragment.COL_TYPE);
+//        int company = mCursor.getInt(DetailsFragment.COL_TYPE);
         vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
 
         String formattedAmount = null;
@@ -117,7 +116,7 @@ public class VehiclesHistoryAdapter extends RecyclerView.Adapter<VehiclesHistory
             String vehicleReg = mCursor.getString(VehiclesFragment.COL_VEHICLE_REGISTRATION);
             int dailyTotalCollection = (int) mCursor.getDouble(mCursor.getColumnIndex("COLLECTION"));
             int dailyTotalExpense = (int) mCursor.getDouble(mCursor.getColumnIndex("EXPENSE"));
-            mClickHandler.onClick(OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(vehicleReg, dailyTotalCollection, dailyTotalExpense), this);
+//            mClickHandler.onClick(OffloadContract.VehicleEntry.buildTransactionWithVehicleId(vehicleId, vehicleReg, dailyTotalCollection, dailyTotalExpense), this);
             Log.w(LOG_TAG, "onClick: " +vehicleReg+"--"+ amount+"--"+dailyTotalExpense);
 
         }

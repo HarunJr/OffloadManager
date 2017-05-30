@@ -23,13 +23,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.harun.offloadmanager.Constants;
 import com.harun.offloadmanager.DateHelper;
 import com.harun.offloadmanager.R;
-import com.harun.offloadmanager.activities.AddVehicleActivity;
 import com.harun.offloadmanager.activities.LoginActivity;
 import com.harun.offloadmanager.adapters.VehiclesAdapter;
 import com.harun.offloadmanager.data.LocalStore;
@@ -41,7 +41,7 @@ import com.harun.offloadmanager.tasks.ServerRequest;
 public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String LOG_TAG = VehiclesFragment.class.getSimpleName();
 
-    private OnFragmentInteractionListener mListener;
+    private OnVehicleFragmentInteractionListener mListener;
     private VehiclesAdapter mVehiclesAdapter;
     private int mPosition = RecyclerView.NO_POSITION;
     private RecyclerView mRecyclerView;
@@ -57,7 +57,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
     String listenerTag;
     double vehicleBalance;
-    private long dateTime;
+    private String date;
     public static final String[] VEHICLE_COLUMN = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the vehicle & transactions tables in the background
@@ -65,7 +65,8 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
             // On the one hand, that's annoying.  On the other, you can search the weather table
             // using the location set by the user, which is only in the Location table.
             // So the convenience is worth it.
-            OffloadContract.VehicleEntry.TABLE_NAME + "." + OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION,
+            OffloadContract.VehicleEntry.TABLE_NAME + "." + OffloadContract.VehicleEntry.COLUMN_VEHICLE_ID,
+            OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION,
             OffloadContract.VehicleEntry.COLUMN_VEHICLE_REGISTRATION_DATE,
             OffloadContract.VehicleEntry.COLUMN_VEHICLE_TOTAL_COLLECTION,
             OffloadContract.VehicleEntry.COLUMN_VEHICLE_TOTAL_EXPENSE,
@@ -74,11 +75,12 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
     // These indices are tied to VEHICLE_COLUMN.  If VEHICLE_COLUMN changes, these
     // must change.
-    public static final int COL_VEHICLE_REGISTRATION = 0;
-    public static final int COL_REG_DATE_TIME = 1;
-    public static final int COL_VEHICLE_COLLECTION = 2;
-    public static final int COL_VEHICLE_EXPENSE = 3;
-    public static final int COL_LAST_TRANSACTION_DATE_TIME = 4;
+    public static final int COL_VEHICLE_ID = 0;
+    public static final int COL_VEHICLE_REGISTRATION = 1;
+    public static final int COL_REG_DATE_TIME = 2;
+    public static final int COL_VEHICLE_COLLECTION = 3;
+    public static final int COL_VEHICLE_EXPENSE = 4;
+    public static final int COL_LAST_TRANSACTION_DATE_TIME = 5;
 
 
     public VehiclesFragment() {
@@ -99,10 +101,10 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         if (getArguments() != null) {
-            dateTime = getArguments().getLong(Constants.CURRENT_DAY);
-            Log.w(LOG_TAG, "onCreate " + dateTime);
+            date = getArguments().getString(Constants.CURRENT_DATE);
+            Log.w(LOG_TAG, "onCreate " + date);
         } else {
-            Log.w(LOG_TAG, "Error...NO ARGS " + dateTime);
+            Log.w(LOG_TAG, "Error...NO ARGS " + date);
 
         }
     }
@@ -112,22 +114,23 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_vehicles, container, false);
+        RelativeLayout headerView = (RelativeLayout) rootView.findViewById(R.id.header_vehicles);
 
-        headerCardView = (CardView) rootView.findViewById(R.id.header_vehicles_cardView);
+//        headerCardView = (CardView) rootView.findViewById(R.id.header_vehicles_cardView);
         headerVehicleDateView = (TextView) rootView.findViewById(R.id.item_vehicles_header_date_text_view);
         headerVehicleCollectionView = (TextView) rootView.findViewById(R.id.item_vehicles_header_collection_text_view);
         headerVehicleExpenseView = (TextView) rootView.findViewById(R.id.item_vehicles_header_expense_text_view);
         headerVehicleDifferenceView = (TextView) rootView.findViewById(R.id.item_vehicles_header_profit_text_view);
 
-        headerCardView.setOnClickListener(new View.OnClickListener() {
+        headerView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String officeKey = "Office";
                 int dailyOfficeCollection = (int) vehicleBalance;
 
-                Uri summaryUri = OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(officeKey, dailyOfficeCollection, 0);//vehicleBalance, office expenses.
-                ((OnFragmentInteractionListener) getActivity()).onFragmentInteraction(summaryUri, dateTime);
-                Log.w(LOG_TAG, "onCreateView " + summaryUri);
+//                Uri summaryUri = OffloadContract.VehicleEntry.buildTransactionWithVehicleId(vehicleId, officeKey, dailyOfficeCollection, 0);//vehicleBalance, office expenses.
+//                ((OnVehicleFragmentInteractionListener) getActivity()).onVehicleFragmentInteraction(summaryUri, dateTime);
+//                Log.w(LOG_TAG, "onCreateView " + summaryUri);
             }
         });
 
@@ -144,13 +147,13 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
             @Override
             public void onClick(Uri uri, VehiclesAdapter.ViewHolder vh) {
                 listenerTag = "listItemSelected";
-                ((OnFragmentInteractionListener) getActivity()).onFragmentInteraction(uri, dateTime);
+                ((OnVehicleFragmentInteractionListener) getActivity()).onVehicleFragmentInteraction(uri);
 
                 Log.w(LOG_TAG, "onCreateView " + uri);
                 mPosition = vh.getAdapterPosition();
 
             }
-        }, emptyView);
+        }, emptyView, date);
 
         mRecyclerView.setAdapter(mVehiclesAdapter);
 
@@ -175,16 +178,16 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
             LocalStore localStore = new LocalStore(getContext());
             Transaction transaction = localStore.getTransactionsNotSynced();
 
-            if (transaction != null){
-                Log.w(LOG_TAG, "onStart()" + transaction.vehicleKey);
+            if (transaction != null) {
+                Log.w(LOG_TAG, "onStart()" + transaction.vehicleReg);
 
                 String method = "add_transaction";
-                ServerRequest serverRequest = new ServerRequest(getContext());
-                serverRequest.execute(method,
-                        transaction.vehicleKey, transaction.amount, transaction.type, transaction.description, transaction.dateTime);
+//                ServerRequest serverRequest = new ServerRequest(getContext());
+//                serverRequest.execute(method,
+//                        transaction.vehicleReg, transaction.getAmount(), transaction.type, transaction.description, transaction.dateTime);
             }
 
-            updateView();
+//            updateView();
 
         } else {
             Toast.makeText(getActivity(), R.string.no_internet_message, Toast.LENGTH_LONG).show();
@@ -203,7 +206,16 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         switch (item.getItemId()) {
             case R.id.action_add_vehicle:
                 Log.w(LOG_TAG, "action_add_vehicle");
-                addVehicle();
+//                addVehicle();
+                ((OnVehicleFragmentInteractionListener) getActivity()).onOptionItemClicked("add_vehicle");
+
+                return true;
+
+            case R.id.action_add_user:
+                Log.w(LOG_TAG, "action_add_user");
+//                addUser();
+                ((OnVehicleFragmentInteractionListener) getActivity()).onOptionItemClicked("add_user");
+
                 return true;
 
             case R.id.action_refresh:
@@ -217,7 +229,7 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
             case R.id.action_logout:
                 LocalStore userLocalStore = new LocalStore(getActivity());
-                userLocalStore.clearUserData();
+                userLocalStore.clearData();
                 userLocalStore.setUserLoggedIn(false);
 
                 startActivity(new Intent(getActivity(), LoginActivity.class)
@@ -238,13 +250,9 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
-    private void addVehicle() {
-        startActivity(new Intent(getActivity(), AddVehicleActivity.class));
-    }
-
     private void updateView() {
         Log.w(LOG_TAG, "updateView");
-        User user = new LocalStore(getContext()).getLoggedInUser();
+        User user = new LocalStore(getContext()).getStoredUser();
 
         String registerMethod = "fetch_all_data";
         new ServerRequest(getActivity()).execute(registerMethod, user.phoneNo);
@@ -292,7 +300,6 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
 
         if (data != null && data.moveToFirst()) {
 
-            dateTime = System.currentTimeMillis();
             double dailyVehicleCollection;
             double dailyVehicleExpense;
 
@@ -311,14 +318,14 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
             while (data.moveToNext());
 
             Log.w(LOG_TAG, "total: " + collectionTotal);
-            vehicleBalance = collectionTotal - expenseTotal;
+            //Add to get balance because 'expenseTotal' is negative(-)
+            vehicleBalance = collectionTotal + expenseTotal;
 
-            String day = DateHelper.getFormattedDayString(dateTime);
             String formattedCollection = DateHelper.getFormattedCurrency(getContext(), collectionTotal);
-            String formattedExpense = DateHelper.getFormattedCurrencyExpense(getContext(), expenseTotal);
+            String formattedExpense = DateHelper.getFormattedCurrency(getContext(), expenseTotal);
             String formattedDifference = DateHelper.getFormattedCurrency(getContext(), vehicleBalance);
 
-            headerVehicleDateView.setText(day);
+//            headerVehicleDateView.setText(date);
             headerVehicleCollectionView.setText(formattedCollection);
             headerVehicleExpenseView.setText(formattedExpense);
             headerVehicleDifferenceView.setText(formattedDifference);
@@ -348,8 +355,8 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnVehicleFragmentInteractionListener) {
+            mListener = (OnVehicleFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -362,9 +369,9 @@ public class VehiclesFragment extends Fragment implements LoaderManager.LoaderCa
         mListener = null;
     }
 
-    public interface OnFragmentInteractionListener {
-        //        // TODO: Update argument type and name
-//        void onFragmentInteraction(Uri uri);
-        void onFragmentInteraction(Uri uri, long dateTime);
+    public interface OnVehicleFragmentInteractionListener {
+        void onVehicleFragmentInteraction(Uri uri);
+
+        void onOptionItemClicked(String uri);
     }
 }

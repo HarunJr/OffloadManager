@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--http://paletton.com-->
     <color name="colorPrimary">#292787</color>
     <color name="colorPrimaryDark">#1D1B5F</color>
     <!--<color name="colorAccent">#ED1946</color>-->
@@ -8,10 +9,11 @@
 
 
     <!--300 of primary-->
-    <color name="colorPrimaryText">#6968AB</color>
+    <color name="colorPrimaryText">#AAAACD</color>
 
     <!--calendar colors-->
     <color name="today">#4b82ff</color>
-    <color name="greyed_out">#c7c7c7</color>
+    <color name="blue_grey">#9A9AAC</color>
+    <color name="greyed_out">#615FAF</color>
 
 </resources>

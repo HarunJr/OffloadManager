@@ -20,7 +20,6 @@ import com.harun.offloadmanager.data.LocalStore;
 import com.harun.offloadmanager.data.OffloadDbHelper;
 import com.harun.offloadmanager.models.Transaction;
 import com.harun.offloadmanager.models.User;
-import com.harun.offloadmanager.models.Vehicle;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,8 +43,11 @@ import java.net.URLEncoder;
 public class ServerRequest extends AsyncTask<String, Void, String> {
     public static final String LOG_TAG = ServerRequest.class.getSimpleName();
     public static final String BASE_URL = "http://192.168.56.1/offloadmanager/";//Genymotion IPV4 address
-    public static final String BASE_WIFI_URL = "http://192.168.0.13/offloadmanager/"; //Ipconfig LAN
+    //    public static final String BASE_WIFI_URL = "http://192.168.0.13/offloadmanager/"; //Ipconfig LAN
+    public static final String BASE_WIFI_URL = "http://192.168.0.17/offloadmanager/"; //Ipconfig LAN
     //    private static final String BASE_WIFI_URL = "http://169.254.221.34/offloadmanager/";
+    public static final String ONLINE_URL = "http://transit.gemilab.com/";
+
     private Context mContext;
     private OffloadDbHelper dbHelper;
     private Activity activity;
@@ -60,6 +62,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 
     private Transaction transaction;
     String exception;
+
     public ServerRequest(Context context) {
         this.mContext = context;
         this.activity = (Activity) context;
@@ -88,8 +91,9 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
         String insertV_url = BASE_WIFI_URL + "insert_vehicle.php";
         String transact_url = BASE_URL + "transact.php";
         String register_user_url = BASE_URL + "register_user.php";
-        String login_user_url = BASE_URL + "login_user.php";
-        String get_data = BASE_URL + "get_data.php";
+//        String login_user_url = BASE_WIFI_URL + "login_user.php";
+        String login_user_url = ONLINE_URL + "authenticate";
+        String get_data = BASE_WIFI_URL + "get_data.php";
         String update_url = BASE_URL + "update.php";
         String delete_url = BASE_URL + "delete.php";
         String method = params[0];
@@ -123,10 +127,10 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                             URLEncoder.encode("phone_no", "UTF-8") + "=" + URLEncoder.encode(phone_no, "UTF-8") + "&" +
                             URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
                             URLEncoder.encode("pin", "UTF-8") + "=" + URLEncoder.encode(pin, "UTF-8") + "&" +
-                            URLEncoder.encode("type", "UTF-8") + "=" + URLEncoder.encode(type, "UTF-8") + "&" +
+                            URLEncoder.encode("company", "UTF-8") + "=" + URLEncoder.encode(type, "UTF-8") + "&" +
                             URLEncoder.encode("fcm_token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8");
 
-                    Log.w(LOG_TAG, "method register_user " + name + "," + email + "," + phone_no + "," + pin +","+type);
+                    Log.w(LOG_TAG, "method register_user " + name + "," + email + "," + phone_no + "," + pin + "," + type);
 
                     bufferedWriter.write(data);
                     bufferedWriter.flush();
@@ -170,18 +174,17 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                 }
                 break;
 
-            }
-            case "login_user": {
-                Log.w(LOG_TAG, "doInBackground login_user");
+            }case "login_user": {
                 phone_no = params[1];
                 pin = params[2];
 
+                Log.w(LOG_TAG, "doInBackground login_user " + phone_no +" "+ pin);
                 String JSON_STRING;
                 userJsonString = null;
 
                 HttpURLConnection httpURLConnection = null;
                 BufferedReader bufferedReader = null;
-                StringBuilder stringBuilder= null;
+                StringBuilder stringBuilder = null;
                 try {
                     URL url = new URL(login_user_url);
                     httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -191,7 +194,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                     OutputStream OS = httpURLConnection.getOutputStream();
                     BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(OS, "UTF-8"));
 
-                    String data = URLEncoder.encode("phone_no", "UTF-8") + "=" + URLEncoder.encode(phone_no, "UTF-8") + "&" +
+                    String data = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(phone_no, "UTF-8") + "&" +
                             URLEncoder.encode("pin", "UTF-8") + "=" + URLEncoder.encode(pin, "UTF-8");
 
                     Log.w(LOG_TAG, "method login_user " + phone_no + "," + pin);
@@ -373,7 +376,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 
                     String data = URLEncoder.encode("vehicle_key", "UTF-8") + "=" + URLEncoder.encode(vehicleReg, "UTF-8") + "&" +
                             URLEncoder.encode("amount", "UTF-8") + "=" + URLEncoder.encode(amount, "UTF-8") + "&" +
-                            URLEncoder.encode("type", "UTF-8") + "=" + URLEncoder.encode(type, "UTF-8") + "&" +
+                            URLEncoder.encode("company", "UTF-8") + "=" + URLEncoder.encode(type, "UTF-8") + "&" +
                             URLEncoder.encode("description", "UTF-8") + "=" + URLEncoder.encode(description, "UTF-8") + "&" +
                             URLEncoder.encode("date_time", "UTF-8") + "=" + URLEncoder.encode(dateTime, "UTF-8");
 
@@ -391,11 +394,11 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                 } catch (IOException e) {
                     e.printStackTrace();
 //                    Toast.makeText(mContext, "Unable To Connect To Internet", Toast.LENGTH_LONG).show();
-                    Log.w(LOG_TAG, "IOException called " + amount + ": " + vehicleReg + ": " + dateTime );
-                    Log.w(LOG_TAG, "saveToLocal" + vehicleReg +"-"+amount+"-"+type+"-"+description+"-"+dateTime);
+                    Log.w(LOG_TAG, "IOException called " + amount + ": " + vehicleReg + ": " + dateTime);
+                    Log.w(LOG_TAG, "saveToLocal" + vehicleReg + "-" + amount + "-" + type + "-" + description + "-" + dateTime);
 
                     int Sync = 1;//Not Synced
-                    transaction = new Transaction(vehicleReg, amount, type, description, dateTime, Sync);
+//                    transaction = new Transaction(vehicleReg, amount, type, description, dateTime, Sync);
 
                     //store in SQLite Before Syncing
                     LocalStore transactionStore = new LocalStore(mContext);
@@ -478,10 +481,10 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        dismissProgressDialog();
         Log.w(LOG_TAG, "onPostExecute Authentication Successful!!! " + result);
+        dismissProgressDialog();
 
-        if (result != null){
+        if (result != null) {
             switch (result) {
                 case "Registration Successful":
                     try {
@@ -521,7 +524,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                     break;
             }
 
-        }else {
+        } else {
             Toast.makeText(mContext, "Unable To Connect To Server", Toast.LENGTH_LONG).show();
 
         }
@@ -628,10 +631,10 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 
                 Log.w(LOG_TAG, "getVehicleDataFromJson: " + vehicleReg + ", " + vehicleCollection + ", " + vehicleExpense + ", " + vehicleLastTransaction + ", " + regDate);
 
-                Vehicle vehicle = new Vehicle(vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction);
+//                Vehicle vehicle = new Vehicle(vehicleReg, regDate, vehicleCollection, vehicleExpense, vehicleLastTransaction);
 
                 LocalStore vehicleLocalStore = new LocalStore(mContext);
-                vehicleLocalStore.storeVehicleData(vehicle);
+//                vehicleLocalStore.storeVehicleData(vehicle);
 
                 getCurrentDayTransactionFromJson(vehicleObject);
             }
@@ -651,6 +654,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
 
 
     private void showDialog(String title, String message, String code) {
+
         builder.setTitle(title);
         if (code.equals("reg_true") || code.equals("reg_false")) {
             builder.setMessage(message);
@@ -700,7 +704,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
         final String TRANSACTION_ID = "id";
         final String VEHICLE_KEY = "vehicle_key";
         final String TRANSACTION_AMOUNT = "amount";
-        final String TYPE = "type";
+        final String TYPE = "company";
         final String DESCRIPTION = "description";
         final String TRANSACTION_DATE_TIME = "date_time";
 
@@ -722,7 +726,7 @@ public class ServerRequest extends AsyncTask<String, Void, String> {
                 Log.w(LOG_TAG, "From db: " + transactionId + ", " + vehicleKey + ", " + amount + ", " + type + ", " + description + ", " + dateTime);
 
                 int sync = 0; //Synced
-                transaction = new Transaction(transactionId, vehicleKey, amount, type, description, dateTime, sync);
+//                transaction = new Transaction(transactionId, vehicleReg, amount, type, description, dateTime, sync);
 
                 LocalStore transactionStore = new LocalStore(mContext);
                 transactionStore.storeTransactionData(transaction);

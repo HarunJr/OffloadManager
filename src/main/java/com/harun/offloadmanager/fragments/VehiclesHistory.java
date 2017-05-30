@@ -107,9 +107,9 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
                 String officeKey = "Office";
                 int dailyOfficeCollection = (int) vehicleBalance;
 
-                Uri summaryUri = OffloadContract.VehicleEntry.buildVehicleRegistrationWithTransactionsAndDate(officeKey, dailyOfficeCollection, 0);//vehicleBalance, office expenses.
-                ((VehiclesFragment.OnFragmentInteractionListener) getActivity()).onFragmentInteraction(summaryUri, calMilliTime);
-                Log.w(LOG_TAG, "onCreateView " + summaryUri);
+//                Uri summaryUri = OffloadContract.VehicleEntry.buildTransactionWithVehicleId(vehicleId, officeKey, dailyOfficeCollection, 0);//vehicleBalance, office expenses.
+//                ((VehiclesFragment.OnVehicleFragmentInteractionListener) getActivity()).onVehicleFragmentInteraction(summaryUri, calMilliTime);
+//                Log.w(LOG_TAG, "onCreateView " + summaryUri);
             }
         });
 
@@ -126,7 +126,7 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
             @Override
             public void onClick(Uri uri, VehiclesHistoryAdapter.ViewHolder vh) {
                 listenerTag = "listItemSelected";
-                ((VehiclesFragment.OnFragmentInteractionListener) getActivity()).onFragmentInteraction(uri, calMilliTime);
+                ((VehiclesFragment.OnVehicleFragmentInteractionListener) getActivity()).onVehicleFragmentInteraction(uri);
                 mPosition = vh.getAdapterPosition();
 
                 Log.w(LOG_TAG, "onCreateView " + uri);
@@ -327,7 +327,7 @@ public class VehiclesHistory extends Fragment implements LoaderManager.LoaderCal
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
+        // TODO: Update argument company and name
         void onItemSelected(Uri uri);
     }
 }

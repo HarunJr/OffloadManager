@@ -2,14 +2,16 @@ package com.harun.offloadmanager.activities;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.harun.offloadmanager.R;
 import com.harun.offloadmanager.fragments.LoginFragment;
+import com.harun.offloadmanager.fragments.RegisterFragment;
+import com.harun.offloadmanager.models.User;
+import com.harun.offloadmanager.service.UserServices;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity implements LoginFragment.OnLoginFragmentInteractionListener, RegisterFragment.OnRegistrationFragmentInteractionListener{
     public static final String LOG_TAG = LoginActivity.class.getSimpleName();
     private Boolean exit = false;
 
@@ -27,6 +29,17 @@ public class LoginActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment_login, new LoginFragment())
                 .commit();
+    }
+
+    @Override
+    public void onLoginFragmentInteraction(User user) {
+        Log.w(LOG_TAG, "loginUser " + user.getPhoneNo());
+        bus.post(new UserServices.UserServerRequest("login", user));
+    }
+
+    @Override
+    public void onRegistrationFragmentInteraction(User user) {
+        bus.post(new UserServices.UserServerRequest("signup", user));
     }
 
     @Override

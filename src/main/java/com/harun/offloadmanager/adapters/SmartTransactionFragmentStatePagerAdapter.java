@@ -10,7 +10,7 @@ import android.util.Log;
 
 import com.harun.offloadmanager.helper.NumPad;
 import com.harun.offloadmanager.fragments.ExpenseFragment;
-import com.harun.offloadmanager.fragments.IncomeFragment;
+import com.harun.offloadmanager.fragments.CollectionFragment;
 
 public class SmartTransactionFragmentStatePagerAdapter extends FragmentStatePagerAdapter {
     private static final String LOG_TAG = SmartTransactionFragmentStatePagerAdapter.class.getSimpleName();
@@ -38,7 +38,7 @@ public class SmartTransactionFragmentStatePagerAdapter extends FragmentStatePage
         switch (position) {
             case 0: {
                 // Home -Tweet fragment activity
-                return IncomeFragment.newInstance(context, position, vehicleReg, coordinatorLayout, keyboardView, numPad);
+                return CollectionFragment.newInstance(context, position, vehicleReg, coordinatorLayout, keyboardView, numPad);
             }
             case 1: {
                 // Favourite fragment activity

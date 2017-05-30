@@ -20,6 +20,7 @@ public class DetailsActivity extends AppCompatActivity {
     //From mainActivity
     Uri mUri;
     String titleKey;
+    int vehicleId;
     Bundle args = new Bundle();
     long dateTime;
     FloatingActionButton fab;
@@ -56,6 +57,7 @@ public class DetailsActivity extends AppCompatActivity {
 
         if (args != null) {
             mUri = args.getParcelable(Constants.DETAIL_URI);
+            vehicleId = OffloadContract.VehicleEntry.getVehicleIdFromUri(mUri);
             titleKey = OffloadContract.VehicleEntry.getVehicleRegistrationFromUri(mUri);
 
             addDetailsFragment(mUri);
@@ -88,9 +90,8 @@ public class DetailsActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
                                    @Override
                                    public void onClick(View v) {
-
                                        Log.w(LOG_TAG, " OnFabPressed " + titleKey);
-                                       startTransactionsActivity(titleKey);
+                                       startTransactionsActivity(vehicleId,titleKey);
                                    }
                                }
         );
@@ -124,8 +125,9 @@ public class DetailsActivity extends AppCompatActivity {
 //        );
 //    }
 
-    private void startTransactionsActivity(String title) {
+    private void startTransactionsActivity(int vehicleId, String title) {
         startActivity(new Intent(getApplicationContext(), TransactionsActivity.class)
+                .putExtra(TransactionsActivity.VEHICLE_ID, vehicleId)
                 .putExtra(TransactionsActivity.VEHICLE_REG, title));
     }
 

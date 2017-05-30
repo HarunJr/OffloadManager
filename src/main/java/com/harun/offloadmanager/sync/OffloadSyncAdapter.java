@@ -136,7 +136,6 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void getCurrentDayTransactionFromJson(JSONObject vehicleObject) {
-
         //Transaction information. Each Transaction's detail is an element of "transaction_list" array.
         final String TRANACTION_LIST = "transaction_list";
 
@@ -144,7 +143,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
         final String TRANSACTION_ID = "id";
         final String VEHICLE_KEY = "vehicle_key";
         final String TRANSACTION_AMOUNT = "amount";
-        final String TYPE = "type";
+        final String TYPE = "company";
         final String DESCRIPTION = "description";
         final String TRANSACTION_DATE_TIME = "date_time";
         JSONArray transactionArray = null;
@@ -164,15 +163,11 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
                 dateTime = transactionObject.getString(TRANSACTION_DATE_TIME);
 
                 Log.w(LOG_TAG, "From db: " + transactionId + ", " + vehicleKey+", "+ amount + ", " + type + ", " + description + ", " + dateTime);
-
                 addToTransactionSQLitedb(transactionId, vehicleKey, amount, type, description, dateTime);
-
             }
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
     }
 
     public void open() throws SQLException {
@@ -189,7 +184,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
         transactionValues.put(OffloadContract.TransactionEntry.COLUMN_AMOUNT, amount);
         transactionValues.put(OffloadContract.TransactionEntry.COLUMN_TYPE, type);
         transactionValues.put(OffloadContract.TransactionEntry.COLUMN_DESCRIPTION, description);
-        transactionValues.put(OffloadContract.TransactionEntry.COLUMN_DATE_TIME, dateTime);
+        transactionValues.put(OffloadContract.TransactionEntry.TIMESTAMP, dateTime);
 
         //USE THIS for normal entries
 //        long vehicleRowId=db.insert(VehicleContract.VehicleEntry.TABLE_NAME,null, vehicleValues);
@@ -278,7 +273,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
         AccountManager accountManager =
                 (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
 
-        // Create the account type and default account
+        // Create the account company and default account
         Account newAccount = new Account(
                 context.getString(R.string.app_name), context.getString(R.string.sync_account_type));
 
@@ -286,7 +281,7 @@ public class OffloadSyncAdapter extends AbstractThreadedSyncAdapter {
         if ( null == accountManager.getPassword(newAccount) ) {
 
         /*
-         * Add the account and account type, no password or user data
+         * Add the account and account company, no password or user data
          * If successful, return the Account object, otherwise report an error.
          */
             if (!accountManager.addAccountExplicitly(newAccount, "", null)) {

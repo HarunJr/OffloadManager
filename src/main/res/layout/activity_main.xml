@@ -14,6 +14,11 @@
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
+        <include
+            android:id="@+id/main_activity_toolbar"
+            layout="@layout/tool_bar"
+            app:layout_collapseMode="pin" />
+
         <android.support.design.widget.CollapsingToolbarLayout
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
@@ -21,18 +26,30 @@
             android:fitsSystemWindows="true"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-            <CalendarView
+            <com.github.sundeepk.compactcalendarview.CompactCalendarView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/calendar_view"
-                android:layout_width="match_parent"
-                android:layout_height="300dp" />
+                android:layout_width="fill_parent"
+                android:layout_marginTop="10dp"
+                android:paddingRight="10dp"
+                android:paddingLeft="10dp"
+                android:layout_height="180dp"
+                app:compactCalendarTargetHeight="180dp"
+                style="@style/RobotoTextViewStyle"
+                app:compactCalendarTextSize="14sp"
+                app:compactCalendarBackgroundColor="@color/colorPrimary"
+                app:compactCalendarTextColor="@android:color/white"
+                app:compactCalendarCurrentSelectedDayBackgroundColor="@color/colorAccent"
+                app:compactCalendarCurrentDayBackgroundColor="@color/colorAccentRed"
+                app:compactCalendarShouldSelectFirstDayOfMonthOnScroll="false"
+                app:compactCalendarMultiEventIndicatorColor="#fff" />
+
+            <!--<CalendarView-->
+                <!--android:id="@+id/calendar_view"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="300dp" />-->
 
         </android.support.design.widget.CollapsingToolbarLayout>
-
-        <include
-            android:id="@+id/main_activity_toolbar"
-            layout="@layout/tool_bar"
-            app:layout_collapseMode="pin" />
-
     </android.support.design.widget.AppBarLayout>
 
     <FrameLayout
